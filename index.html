@@ -3,19 +3,15 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Calcolatore Risk Premium — Poker Tournament</title>
+<title>Risk Premium — Push Call Calculator</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
 <style>
-/* ============================================================
-   DESIGN TOKENS
-   ============================================================ */
 :root {
   --bg:          #0e1117;
   --surface:     #161b26;
   --surface-2:   #1e2535;
   --border:      #2a3347;
-  --border-light:#3a4560;
   --text:        #e8ecf4;
   --text-muted:  #8492b0;
   --text-dim:    #4f5e7a;
@@ -30,17 +26,13 @@
   --green-dim:   #1a4d33;
   --font-display: 'DM Serif Display', Georgia, serif;
   --font-body:    'DM Sans', system-ui, sans-serif;
-  --font-mono:    'DM Mono', 'Courier New', monospace;
+  --font-mono:    'DM Mono', monospace;
   --radius:       8px;
   --radius-lg:    14px;
-  --shadow:       0 4px 24px rgba(0,0,0,0.4);
 }
 
-/* ============================================================
-   RESET & BASE
-   ============================================================ */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-html { font-size: 16px; scroll-behavior: smooth; }
+html { font-size: 16px; }
 body {
   background: var(--bg);
   color: var(--text);
@@ -49,210 +41,168 @@ body {
   line-height: 1.65;
   min-height: 100vh;
 }
-h1,h2,h3,h4 { font-family: var(--font-display); font-weight: 400; line-height: 1.2; }
-a { color: var(--amber); text-decoration: none; }
-a:hover { text-decoration: underline; }
+h1,h2,h3 { font-family: var(--font-display); font-weight: 400; line-height: 1.2; }
 button { cursor: pointer; font-family: var(--font-body); }
 input, select { font-family: var(--font-body); }
 :focus-visible { outline: 2px solid var(--amber); outline-offset: 2px; }
+a { color: var(--amber); text-decoration: none; }
 
-/* ============================================================
-   LAYOUT WRAPPER
-   ============================================================ */
-.rpc-root {
-  max-width: 980px;
+/* ── LAYOUT ── */
+.wrap {
+  max-width: 680px;
   margin: 0 auto;
   padding: 40px 20px 80px;
 }
 
-/* ============================================================
-   HEADER
-   ============================================================ */
-.rpc-header {
-  border-bottom: 1px solid var(--border);
-  padding-bottom: 28px;
-  margin-bottom: 36px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-.rpc-header-top {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  flex-wrap: wrap;
-}
-.rpc-eyebrow {
+/* ── HEADER ── */
+.header { margin-bottom: 36px; border-bottom: 1px solid var(--border); padding-bottom: 24px; }
+.eyebrow {
   font-family: var(--font-mono);
-  font-size: 0.7rem;
-  letter-spacing: 0.12em;
+  font-size: 0.68rem;
+  letter-spacing: 0.13em;
   text-transform: uppercase;
   color: var(--amber);
   background: color-mix(in srgb, var(--amber) 10%, transparent);
   border: 1px solid var(--amber-dim);
-  padding: 4px 10px;
+  padding: 3px 9px;
   border-radius: 4px;
   display: inline-block;
+  margin-bottom: 12px;
 }
-.rpc-title { font-size: clamp(1.6rem, 4vw, 2.4rem); color: var(--text); }
-.rpc-subtitle { color: var(--text-muted); font-size: 0.95rem; font-weight: 300; max-width: 600px; }
-.mode-toggle {
+.title { font-size: clamp(1.7rem, 5vw, 2.5rem); margin-bottom: 8px; }
+.subtitle { color: var(--text-muted); font-size: 0.9rem; font-weight: 300; }
+
+/* ── SECTION LABEL ── */
+.sec-label {
+  font-family: var(--font-mono);
+  font-size: 0.67rem;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 7px;
+  margin-bottom: 18px;
+  margin-top: 28px;
+}
+.sec-label:first-of-type { margin-top: 0; }
+
+/* ── UNIT TOGGLE ── */
+.unit-row {
   display: flex;
-  gap: 0;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+.unit-label { font-size: 0.8rem; color: var(--text-muted); font-weight: 500; }
+.toggle-group {
+  display: flex;
   border: 1px solid var(--border);
   border-radius: var(--radius);
   overflow: hidden;
-  flex-shrink: 0;
 }
-.mode-toggle button {
-  padding: 8px 16px;
-  font-size: 0.8rem;
+.toggle-group button {
+  padding: 6px 14px;
+  font-size: 0.78rem;
   font-weight: 500;
   background: transparent;
   color: var(--text-muted);
   border: none;
-  letter-spacing: 0.03em;
   transition: background 0.15s, color 0.15s;
 }
-.mode-toggle button.active {
-  background: var(--amber);
-  color: var(--bg);
+.toggle-group button.active { background: var(--amber); color: var(--bg); }
+.toggle-group button:not(.active):hover { background: var(--surface-2); color: var(--text); }
+.bb-size-wrap {
+  display: none;
+  align-items: center;
+  gap: 8px;
 }
-.mode-toggle button:not(.active):hover {
-  background: var(--surface-2);
+.bb-size-wrap.visible { display: flex; }
+.bb-size-wrap label { font-size: 0.75rem; color: var(--text-muted); white-space: nowrap; }
+.bb-size-wrap input {
+  width: 90px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
   color: var(--text);
+  padding: 6px 10px;
+  font-size: 0.85rem;
+  font-family: var(--font-mono);
 }
+.bb-size-wrap input:focus { outline: none; border-color: var(--amber); }
 
-/* ============================================================
-   TAB NAV
-   ============================================================ */
-.rpc-tabs {
-  display: flex;
-  gap: 0;
-  border-bottom: 1px solid var(--border);
-  margin-bottom: 32px;
-  overflow-x: auto;
-}
-.rpc-tabs button {
-  background: none;
-  border: none;
-  color: var(--text-muted);
-  font-size: 0.875rem;
-  font-weight: 500;
-  padding: 12px 20px;
-  border-bottom: 2px solid transparent;
-  white-space: nowrap;
-  transition: color 0.15s, border-color 0.15s;
-}
-.rpc-tabs button.active {
-  color: var(--amber);
-  border-bottom-color: var(--amber);
-}
-.rpc-tabs button:hover:not(.active) {
-  color: var(--text);
-}
-
-/* ============================================================
-   PANELS
-   ============================================================ */
-.rpc-panel { display: none; }
-.rpc-panel.active { display: block; }
-
-/* ============================================================
-   FORM GRID
-   ============================================================ */
-.form-grid {
+/* ── INPUT GRID ── */
+.input-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 20px;
+  gap: 14px;
+  margin-bottom: 14px;
 }
-@media (max-width: 600px) { .form-grid { grid-template-columns: 1fr; } }
-.form-grid-3 {
-  display: grid;
-  grid-template-columns: repeat(3,1fr);
-  gap: 16px;
-}
-@media (max-width: 700px) { .form-grid-3 { grid-template-columns: 1fr 1fr; } }
-@media (max-width: 400px) { .form-grid-3 { grid-template-columns: 1fr; } }
+@media (max-width: 480px) { .input-grid { grid-template-columns: 1fr; } }
 
-.field { display: flex; flex-direction: column; gap: 6px; }
+.field { display: flex; flex-direction: column; gap: 5px; }
 .field label {
-  font-size: 0.78rem;
+  font-size: 0.73rem;
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.07em;
+  letter-spacing: 0.08em;
   color: var(--text-muted);
+}
+.field .input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
 }
 .field input, .field select {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   color: var(--text);
-  padding: 9px 13px;
+  padding: 9px 40px 9px 12px;
   font-size: 0.9rem;
-  transition: border-color 0.15s;
-  width: 100%;
-}
-.field input:focus, .field select:focus {
-  outline: none;
-  border-color: var(--amber);
-}
-.field input::placeholder { color: var(--text-dim); }
-.field select option { background: var(--surface); }
-.field .hint {
-  font-size: 0.73rem;
-  color: var(--text-dim);
-  line-height: 1.4;
-}
-.field.error input, .field.error select { border-color: var(--red); }
-.field .err-msg { font-size: 0.73rem; color: var(--red); }
-
-/* ============================================================
-   SECTION HEADERS
-   ============================================================ */
-.section-head {
   font-family: var(--font-mono);
-  font-size: 0.7rem;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--text-dim);
-  margin-bottom: 16px;
-  margin-top: 32px;
-  padding-bottom: 8px;
-  border-bottom: 1px solid var(--border);
+  width: 100%;
+  transition: border-color 0.15s;
 }
-.section-head:first-child { margin-top: 0; }
+.field select { padding-right: 12px; font-family: var(--font-body); }
+.field input:focus, .field select:focus { outline: none; border-color: var(--amber); }
+.field input::placeholder { color: var(--text-dim); font-family: var(--font-body); }
+.field select option { background: var(--surface); }
+.field .unit-badge {
+  position: absolute;
+  right: 10px;
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  pointer-events: none;
+}
+.field .hint { font-size: 0.71rem; color: var(--text-dim); line-height: 1.4; }
+.field .chip-equiv { font-size: 0.7rem; color: var(--text-dim); font-family: var(--font-mono); margin-top: 2px; }
 
-/* ============================================================
-   STACK TABLE
-   ============================================================ */
-.stack-table-wrap {
+/* ── OTHERS TABLE ── */
+.others-wrap {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   overflow: hidden;
+  margin-bottom: 6px;
 }
-.stack-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 0.875rem;
-}
-.stack-table thead th {
+.others-table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
+.others-table thead th {
   background: var(--surface-2);
-  padding: 10px 14px;
+  padding: 9px 14px;
   text-align: left;
   font-family: var(--font-mono);
-  font-size: 0.7rem;
+  font-size: 0.65rem;
   text-transform: uppercase;
   letter-spacing: 0.1em;
   color: var(--text-muted);
   font-weight: 500;
 }
-.stack-table tbody tr { border-top: 1px solid var(--border); }
-.stack-table tbody tr:hover { background: color-mix(in srgb, var(--amber) 4%, transparent); }
-.stack-table td { padding: 8px 14px; vertical-align: middle; }
-.stack-table td input {
+.others-table tbody tr { border-top: 1px solid var(--border); }
+.others-table td { padding: 7px 14px; vertical-align: middle; }
+.others-table td input {
   background: transparent;
   border: 1px solid transparent;
   color: var(--text);
@@ -261,173 +211,192 @@ input, select { font-family: var(--font-body); }
   font-family: var(--font-mono);
   border-radius: 4px;
   width: 100%;
+  max-width: 120px;
   transition: border-color 0.15s;
 }
-.stack-table td input:focus {
-  outline: none;
-  border-color: var(--amber);
-  background: var(--surface-2);
-}
-.role-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  font-size: 0.7rem;
-  font-family: var(--font-mono);
-  padding: 2px 7px;
-  border-radius: 4px;
-  font-weight: 500;
-}
-.role-badge.hero   { background: color-mix(in srgb, var(--amber) 15%, transparent); color: var(--amber); border: 1px solid var(--amber-dim); }
-.role-badge.villain{ background: color-mix(in srgb, var(--red)   15%, transparent); color: var(--red);   border: 1px solid var(--red-dim); }
-.role-badge.other  { background: color-mix(in srgb, var(--text)  8%,  transparent); color: var(--text-muted); border: 1px solid var(--border); }
-.stack-actions {
-  display: flex;
-  gap: 10px;
-  padding: 12px 14px;
+.others-table td input:focus { outline: none; border-color: var(--amber); background: var(--surface-2); }
+.others-table .chip-col { font-size: 0.7rem; color: var(--text-dim); font-family: var(--font-mono); }
+.others-table-actions {
+  display: flex; gap: 8px;
+  padding: 10px 14px;
   background: var(--surface-2);
   border-top: 1px solid var(--border);
 }
-.btn-ghost {
-  background: transparent;
-  border: 1px solid var(--border);
-  color: var(--text-muted);
-  padding: 6px 14px;
-  border-radius: var(--radius);
-  font-size: 0.8rem;
-  font-weight: 500;
-  transition: all 0.15s;
-}
-.btn-ghost:hover { border-color: var(--amber); color: var(--amber); }
-.btn-ghost.danger:hover { border-color: var(--red); color: var(--red); }
 
-/* ============================================================
-   PAYOUT TABLE
-   ============================================================ */
-.payout-rows { display: flex; flex-direction: column; gap: 8px; }
+/* ── PAYOUT ── */
+.payout-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.payout-preset-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.payout-preset-wrap label { font-size: 0.73rem; color: var(--text-muted); }
+.payout-preset-wrap select {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text);
+  padding: 5px 10px;
+  font-size: 0.8rem;
+  font-family: var(--font-body);
+}
+.payout-preset-wrap select:focus { outline: none; border-color: var(--amber); }
+.payout-rows { display: flex; flex-direction: column; gap: 7px; margin-bottom: 8px; }
 .payout-row {
   display: grid;
-  grid-template-columns: 90px 1fr auto;
-  gap: 10px;
+  grid-template-columns: 80px 1fr auto;
+  gap: 8px;
   align-items: center;
 }
 .payout-row .pos-label {
   font-family: var(--font-mono);
-  font-size: 0.78rem;
+  font-size: 0.75rem;
   color: var(--text-muted);
-  padding: 9px 0;
 }
 .payout-row input {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   color: var(--text);
-  padding: 8px 12px;
+  padding: 7px 11px;
   font-family: var(--font-mono);
   font-size: 0.875rem;
   width: 100%;
 }
-.payout-row input:focus {
-  outline: none;
-  border-color: var(--amber);
-}
-.payout-row .remove-btn {
+.payout-row input:focus { outline: none; border-color: var(--amber); }
+.payout-row .rm-btn {
   background: transparent;
   border: 1px solid var(--border);
   color: var(--text-dim);
-  padding: 6px 8px;
+  padding: 5px 8px;
   border-radius: 4px;
   font-size: 0.75rem;
   transition: all 0.15s;
   line-height: 1;
 }
-.payout-row .remove-btn:hover { border-color: var(--red); color: var(--red); }
+.payout-row .rm-btn:hover { border-color: var(--red); color: var(--red); }
+.payout-total {
+  font-family: var(--font-mono);
+  font-size: 0.73rem;
+  color: var(--text-dim);
+  text-align: right;
+  margin-bottom: 6px;
+}
+.payout-total.ok { color: var(--teal); }
+.payout-total.warn { color: var(--amber); }
 
-/* ============================================================
-   CTA BUTTON
-   ============================================================ */
+/* ── BUTTONS ── */
+.btn-ghost {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  padding: 6px 13px;
+  border-radius: var(--radius);
+  font-size: 0.78rem;
+  font-weight: 500;
+  transition: all 0.15s;
+}
+.btn-ghost:hover { border-color: var(--amber); color: var(--amber); }
+.btn-ghost.danger:hover { border-color: var(--red); color: var(--red); }
 .btn-primary {
   background: var(--amber);
   color: var(--bg);
   border: none;
-  padding: 12px 32px;
+  padding: 13px 36px;
   border-radius: var(--radius);
-  font-size: 0.9rem;
-  font-weight: 600;
-  letter-spacing: 0.03em;
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
   transition: background 0.15s, transform 0.1s;
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
+  margin-top: 28px;
+  width: 100%;
+  justify-content: center;
 }
 .btn-primary:hover  { background: var(--amber-light); }
-.btn-primary:active { transform: scale(0.98); }
-.calc-cta {
-  margin-top: 32px;
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  flex-wrap: wrap;
-}
-.calc-cta .note {
-  font-size: 0.78rem;
-  color: var(--text-dim);
-}
+.btn-primary:active { transform: scale(0.99); }
 
-/* ============================================================
-   RESULTS PANEL
-   ============================================================ */
-.results-empty {
-  background: var(--surface);
-  border: 1px dashed var(--border);
-  border-radius: var(--radius-lg);
-  padding: 48px 32px;
-  text-align: center;
-  color: var(--text-dim);
+/* ── ERROR ── */
+.error-banner {
+  background: color-mix(in srgb, var(--red) 10%, var(--surface));
+  border: 1px solid var(--red-dim);
+  border-left: 3px solid var(--red);
+  border-radius: var(--radius);
+  padding: 12px 16px;
+  margin-bottom: 16px;
+  font-size: 0.82rem;
+  color: var(--red);
+  display: none;
 }
-.results-empty .icon { font-size: 2rem; margin-bottom: 12px; }
-.results-empty p { font-size: 0.875rem; }
+.error-banner.visible { display: block; }
+.error-banner ul { padding-left: 16px; margin-top: 4px; }
 
-/* Main result number */
-.result-hero {
+/* ── RESULT CARD ── */
+.result-card {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
-  padding: 32px;
+  padding: 32px 28px;
+  margin-top: 28px;
+  display: none;
+}
+.result-card.visible { display: block; }
+
+.result-main {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
   margin-bottom: 24px;
-  display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 24px;
-  align-items: center;
+  flex-wrap: wrap;
 }
-@media (max-width: 560px) { .result-hero { grid-template-columns: 1fr; } }
-.result-hero-label {
+.result-rp-block {}
+.result-rp-label {
   font-family: var(--font-mono);
-  font-size: 0.68rem;
+  font-size: 0.67rem;
   text-transform: uppercase;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.13em;
   color: var(--text-muted);
-  margin-bottom: 6px;
+  margin-bottom: 4px;
 }
-.result-hero-value {
+.result-rp-value {
   font-family: var(--font-display);
-  font-size: clamp(2.4rem, 6vw, 3.6rem);
-  color: var(--amber);
+  font-size: clamp(3rem, 10vw, 4.5rem);
   line-height: 1;
+  color: var(--amber);
 }
-.result-hero-sub {
-  font-size: 0.83rem;
+.result-rp-sub {
+  font-size: 0.78rem;
   color: var(--text-muted);
-  margin-top: 8px;
+  margin-top: 6px;
 }
-.pressure-gauge {
+
+/* Pressure gauge */
+.gauge-block {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 6px;
+  flex-shrink: 0;
+}
+.gauge-label-top {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-dim);
 }
 .gauge-track {
-  width: 80px;
+  width: 72px;
   height: 6px;
   background: var(--border);
   border-radius: 3px;
@@ -436,884 +405,402 @@ input, select { font-family: var(--font-body); }
 .gauge-fill {
   height: 100%;
   border-radius: 3px;
-  transition: width 0.5s cubic-bezier(.4,0,.2,1);
   background: linear-gradient(90deg, var(--teal), var(--amber), var(--red));
+  transition: width 0.4s cubic-bezier(.4,0,.2,1);
 }
-.gauge-label {
+.gauge-level {
   font-family: var(--font-mono);
-  font-size: 0.65rem;
-  color: var(--text-dim);
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-}
-.pressure-level {
-  font-family: var(--font-mono);
-  font-size: 0.7rem;
+  font-size: 0.68rem;
   font-weight: 500;
 }
 
-/* Equity comparison cards */
-.equity-grid {
+/* Metrics row */
+.metrics-row {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  gap: 16px;
-  margin-bottom: 24px;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-bottom: 20px;
 }
-@media (max-width: 620px) { .equity-grid { grid-template-columns: 1fr; } }
-.equity-card {
-  background: var(--surface);
+@media (max-width: 420px) { .metrics-row { grid-template-columns: 1fr 1fr; } }
+.metric {
+  background: var(--surface-2);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  padding: 20px;
+  padding: 14px;
 }
-.equity-card.highlight {
-  border-color: var(--amber-dim);
-  background: color-mix(in srgb, var(--amber) 6%, var(--surface));
-}
-.equity-card-label {
+.metric-label {
   font-family: var(--font-mono);
-  font-size: 0.65rem;
+  font-size: 0.6rem;
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  color: var(--text-muted);
-  margin-bottom: 8px;
+  color: var(--text-dim);
+  margin-bottom: 5px;
 }
-.equity-card-value {
+.metric-value {
   font-family: var(--font-mono);
-  font-size: 1.5rem;
+  font-size: 1.1rem;
   font-weight: 500;
   color: var(--text);
 }
-.equity-card.highlight .equity-card-value { color: var(--amber); }
-.equity-card-note {
-  font-size: 0.73rem;
-  color: var(--text-dim);
-  margin-top: 4px;
-  line-height: 1.4;
-}
+.metric-value.amber { color: var(--amber); }
+.metric-value.green { color: var(--green); }
+.metric-value.red   { color: var(--red); }
 
-/* Interpretation cards */
-.interp-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
-  margin-bottom: 24px;
-}
-@media (max-width: 560px) { .interp-grid { grid-template-columns: 1fr; } }
-.interp-card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 18px;
-  display: flex;
-  gap: 14px;
-  align-items: flex-start;
-}
-.interp-icon {
-  font-size: 1.2rem;
-  flex-shrink: 0;
-  margin-top: 2px;
-}
-.interp-card-title {
-  font-size: 0.78rem;
-  font-weight: 600;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  margin-bottom: 4px;
-}
-.interp-card-body { font-size: 0.875rem; color: var(--text); line-height: 1.55; }
-
-/* Summary box */
-.summary-box {
+/* Summary */
+.summary {
   background: color-mix(in srgb, var(--amber) 6%, var(--surface));
   border: 1px solid var(--amber-dim);
   border-left: 3px solid var(--amber);
   border-radius: var(--radius);
-  padding: 18px 20px;
-  margin-bottom: 24px;
-  font-size: 0.9rem;
+  padding: 14px 16px;
+  font-size: 0.875rem;
   color: var(--text);
   line-height: 1.6;
 }
-.summary-box strong { color: var(--amber); }
+.summary strong { color: var(--amber); }
 
-/* Warning box */
-.warning-box {
-  background: color-mix(in srgb, var(--amber) 5%, var(--surface));
-  border: 1px solid var(--amber-dim);
-  border-radius: var(--radius);
-  padding: 14px 18px;
-  font-size: 0.8rem;
-  color: var(--text-muted);
-  line-height: 1.55;
-  display: flex;
-  gap: 10px;
-  align-items: flex-start;
-}
-.warning-box .wi { flex-shrink: 0; color: var(--amber); font-size: 0.9rem; }
-
-/* ============================================================
-   COVERAGE TABLE in results
-   ============================================================ */
-.coverage-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 0.83rem;
-  margin-bottom: 8px;
-}
-.coverage-table th {
-  text-align: left;
-  font-family: var(--font-mono);
-  font-size: 0.65rem;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: var(--text-muted);
-  padding: 6px 12px 8px;
-  border-bottom: 1px solid var(--border);
-  font-weight: 500;
-}
-.coverage-table td {
-  padding: 8px 12px;
-  border-bottom: 1px solid var(--border);
-  vertical-align: middle;
-}
-.coverage-table tr:last-child td { border-bottom: none; }
-.pct-bar-wrap {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-.pct-bar {
-  flex: 1;
-  height: 4px;
-  background: var(--border);
-  border-radius: 2px;
-  overflow: hidden;
-}
-.pct-bar-fill {
-  height: 100%;
-  border-radius: 2px;
-  background: var(--amber);
-}
-
-/* ============================================================
-   LEARN PANEL
-   ============================================================ */
-.learn-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 20px;
-}
-@media (max-width: 640px) { .learn-grid { grid-template-columns: 1fr; } }
-.learn-card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  padding: 24px;
-}
-.learn-card-title {
-  font-family: var(--font-display);
-  font-size: 1.05rem;
-  color: var(--text);
-  margin-bottom: 12px;
-}
-.learn-card p {
-  font-size: 0.875rem;
-  color: var(--text-muted);
-  line-height: 1.65;
-  margin-bottom: 10px;
-}
-.learn-card p:last-child { margin-bottom: 0; }
-.learn-card .formula {
-  background: var(--surface-2);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 12px 16px;
-  font-family: var(--font-mono);
-  font-size: 0.8rem;
-  color: var(--amber);
-  margin: 12px 0;
-  line-height: 1.6;
-}
-.learn-card ul {
-  padding-left: 18px;
-  font-size: 0.875rem;
-  color: var(--text-muted);
-  line-height: 1.8;
-}
-.learn-card li::marker { color: var(--amber); }
-
-.learn-full {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  padding: 28px;
-  margin-bottom: 20px;
-}
-.learn-full h3 {
-  font-family: var(--font-display);
-  font-size: 1.2rem;
-  margin-bottom: 14px;
-  color: var(--text);
-}
-.learn-full p, .learn-full li {
-  font-size: 0.875rem;
-  color: var(--text-muted);
-  line-height: 1.7;
-}
-.learn-full ul { padding-left: 18px; }
-.learn-full li { margin-bottom: 6px; }
-.learn-full li::marker { color: var(--amber); }
-.learn-full p { margin-bottom: 10px; }
-
-/* ============================================================
-   ASSUMPTIONS PANEL
-   ============================================================ */
-.assume-block {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  padding: 28px;
-  margin-bottom: 20px;
-}
-.assume-block h3 {
-  font-family: var(--font-display);
-  font-size: 1.1rem;
-  margin-bottom: 14px;
-  display: flex;
-  gap: 10px;
-  align-items: center;
-}
-.tag-approx {
-  font-family: var(--font-mono);
-  font-size: 0.65rem;
-  padding: 2px 8px;
-  background: color-mix(in srgb, var(--amber) 15%, transparent);
-  color: var(--amber);
-  border: 1px solid var(--amber-dim);
-  border-radius: 4px;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  font-weight: 500;
-}
-.tag-exact {
-  font-family: var(--font-mono);
-  font-size: 0.65rem;
-  padding: 2px 8px;
-  background: color-mix(in srgb, var(--teal) 15%, transparent);
-  color: var(--teal);
-  border: 1px solid var(--teal-dim);
-  border-radius: 4px;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  font-weight: 500;
-}
-.assume-block p, .assume-block li {
-  font-size: 0.875rem;
-  color: var(--text-muted);
-  line-height: 1.7;
-}
-.assume-block ul { padding-left: 20px; margin-top: 8px; }
-.assume-block li { margin-bottom: 6px; }
-.assume-block li::marker { color: var(--amber); }
-.code-block {
-  background: var(--bg);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 16px;
-  font-family: var(--font-mono);
-  font-size: 0.77rem;
-  color: var(--teal);
-  line-height: 1.7;
-  overflow-x: auto;
-  margin-top: 12px;
-}
-
-/* ============================================================
-   TOOLTIP
-   ============================================================ */
-[data-tip] { position: relative; cursor: help; border-bottom: 1px dashed var(--text-dim); }
-[data-tip]::after {
-  content: attr(data-tip);
-  position: absolute;
-  bottom: calc(100% + 6px);
-  left: 50%;
-  transform: translateX(-50%);
-  background: var(--surface-2);
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  padding: 8px 12px;
-  font-size: 0.73rem;
-  color: var(--text);
-  white-space: normal;
-  min-width: 200px;
-  max-width: 280px;
-  z-index: 10;
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity 0.15s;
-  line-height: 1.5;
-  font-family: var(--font-body);
-  font-weight: 400;
-}
-[data-tip]:hover::after { opacity: 1; }
-
-/* ============================================================
-   MISC UTILITIES
-   ============================================================ */
-.divider { border: none; border-top: 1px solid var(--border); margin: 28px 0; }
-.text-muted { color: var(--text-muted); }
-.text-amber { color: var(--amber); }
-.text-mono  { font-family: var(--font-mono); }
-.mb8  { margin-bottom: 8px; }
-.mb16 { margin-bottom: 16px; }
-.mb24 { margin-bottom: 24px; }
-.full { width: 100%; }
-.info-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 8px;
-  font-size: 0.83rem;
-  color: var(--text-muted);
-}
-.info-row strong { color: var(--text); font-weight: 500; }
-
-/* validation error banner */
-.error-banner {
-  background: color-mix(in srgb, var(--red) 10%, var(--surface));
-  border: 1px solid var(--red-dim);
-  border-left: 3px solid var(--red);
-  border-radius: var(--radius);
-  padding: 14px 18px;
-  margin-bottom: 20px;
-  font-size: 0.83rem;
-  color: var(--red);
-  display: none;
-}
-.error-banner.visible { display: block; }
-.error-banner ul { padding-left: 16px; margin-top: 6px; }
-
-/* ============================================================
-   COVERAGE BADGE
-   ============================================================ */
+/* Coverage badge */
 .cov-badge {
   font-family: var(--font-mono);
-  font-size: 0.65rem;
+  font-size: 0.62rem;
   padding: 2px 6px;
   border-radius: 3px;
   text-transform: uppercase;
   letter-spacing: 0.06em;
+  vertical-align: middle;
 }
-.cov-covered   { background: color-mix(in srgb, var(--red)   15%, transparent); color: var(--red);   border: 1px solid var(--red-dim); }
-.cov-covering  { background: color-mix(in srgb, var(--green) 15%, transparent); color: var(--green); border: 1px solid var(--green-dim); }
-.cov-equal     { background: var(--surface-2); color: var(--text-muted); border: 1px solid var(--border); }
+.cov-covered  { background: color-mix(in srgb, var(--red)   15%, transparent); color: var(--red);   border: 1px solid var(--red-dim); }
+.cov-covering { background: color-mix(in srgb, var(--green) 15%, transparent); color: var(--green); border: 1px solid var(--green-dim); }
+.cov-equal    { background: var(--surface-2); color: var(--text-muted); border: 1px solid var(--border); }
 
-/* ============================================================
-   FOOTER
-   ============================================================ */
-.rpc-footer {
-  margin-top: 48px;
-  padding-top: 24px;
-  border-top: 1px solid var(--border);
-  font-size: 0.75rem;
+/* approx warning */
+.approx-note {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  font-size: 0.73rem;
   color: var(--text-dim);
-  line-height: 1.6;
+  margin-top: 16px;
+  line-height: 1.5;
+}
+.approx-note .icon { flex-shrink: 0; color: var(--amber); }
+
+/* ── FOOTER ── */
+.footer {
+  margin-top: 48px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
+  font-size: 0.73rem;
+  color: var(--text-dim);
   text-align: center;
+  line-height: 1.6;
 }
 </style>
 </head>
 <body>
+<div class="wrap">
 
-<div class="rpc-root" id="rpc-app">
-
-  <!-- ========================================================
-       HEADER
-       ======================================================== -->
-  <header class="rpc-header">
-    <div>
-      <span class="rpc-eyebrow">Poker Tournament — Strumenti ICM</span>
-    </div>
-    <div class="rpc-header-top">
-      <div>
-        <h1 class="rpc-title">Calcolatore Risk Premium</h1>
-        <p class="rpc-subtitle">Stima quanta equity extra ti serve rispetto al chipEV nelle situazioni ICM critiche — bubble, salti di pagamento e final table.</p>
-      </div>
-      <div class="mode-toggle" role="group" aria-label="Modalità di complessità">
-        <button id="btn-basic"    class="active"  onclick="setMode('basic')">Base</button>
-        <button id="btn-advanced" class=""        onclick="setMode('advanced')">Avanzata</button>
-      </div>
-    </div>
+  <!-- HEADER -->
+  <header class="header">
+    <span class="eyebrow">Poker Tournament — ICM Tools</span>
+    <h1 class="title">Risk Premium Calculator</h1>
+    <p class="subtitle">L'avversario ha pushato. Qual è il tuo risk premium per chiamare?</p>
   </header>
 
-  <!-- ========================================================
-       TAB NAV
-       ======================================================== -->
-  <nav class="rpc-tabs" role="tablist" aria-label="Sezioni del calcolatore">
-    <button role="tab" aria-selected="true"  aria-controls="panel-calc"    id="tab-calc"    class="active" onclick="showTab('calc')"   >Calcolatore</button>
-    <button role="tab" aria-selected="false" aria-controls="panel-results" id="tab-results" class=""       onclick="showTab('results')" >Risultati</button>
-    <button role="tab" aria-selected="false" aria-controls="panel-learn"   id="tab-learn"   class=""       onclick="showTab('learn')"   >Impara</button>
-    <button role="tab" aria-selected="false" aria-controls="panel-model"   id="tab-model"   class=""       onclick="showTab('model')"   style="display:none;">Modello e Ipotesi</button>
-  </nav>
+  <!-- ERROR -->
+  <div id="error-banner" class="error-banner" role="alert">
+    <strong>Correggi i seguenti campi:</strong>
+    <ul id="error-list"></ul>
+  </div>
 
-  <!-- ========================================================
-       PANEL: CALCULATOR
-       ======================================================== -->
-  <section class="rpc-panel active" id="panel-calc" role="tabpanel" aria-labelledby="tab-calc">
+  <!-- UNITÀ -->
+  <div class="unit-row">
+    <span class="unit-label">Unità stack:</span>
+    <div class="toggle-group" role="group" aria-label="Unità stack">
+      <button id="btn-chips" class="active" onclick="setUnit('chips')">Chips</button>
+      <button id="btn-bb"    class=""       onclick="setUnit('bb')">BB</button>
+    </div>
+    <div id="bb-size-wrap" class="bb-size-wrap">
+      <label for="field-bb-size">1 BB =</label>
+      <input type="number" id="field-bb-size" min="1" value="1000" oninput="onBBChange()">
+      <span style="font-size:0.73rem;color:var(--text-dim);">chip</span>
+    </div>
+  </div>
 
-    <div id="error-banner" class="error-banner" role="alert">
-      <strong>Si prega di correggere quanto segue:</strong>
-      <ul id="error-list"></ul>
+  <!-- STACK HERO E VILLAIN -->
+  <p class="sec-label">Stack in gioco</p>
+  <div class="input-grid">
+
+    <div class="field">
+      <label for="f-hero">Il tuo stack (Hero)</label>
+      <div class="input-wrap">
+        <input type="number" id="f-hero" min="0" placeholder="es. 28" oninput="onStackInput('hero')">
+        <span class="unit-badge" id="badge-hero">BB</span>
+      </div>
+      <span class="chip-equiv" id="equiv-hero"></span>
     </div>
 
-    <!-- Impostazioni torneo -->
-    <p class="section-head">Impostazioni Torneo</p>
-    <div class="form-grid mb24">
-      <div class="field">
-        <label for="field-stage">Fase del Torneo</label>
-        <select id="field-stage">
-          <option value="early">Inizio (ante spenti, field ampio)</option>
-          <option value="middle">Fasi intermedie</option>
-          <option value="near-bubble">Vicino alla money bubble</option>
-          <option value="itm">In the money</option>
-          <option value="final-table" selected>Final table</option>
-        </select>
-        <span class="hint">La fase influisce sulle stime baseline della pressione ICM.</span>
+    <div class="field">
+      <label for="f-villain">Stack villain (pusher)</label>
+      <div class="input-wrap">
+        <input type="number" id="f-villain" min="0" placeholder="es. 42" oninput="onStackInput('villain')">
+        <span class="unit-badge" id="badge-villain">BB</span>
       </div>
-      <div class="field">
-        <label for="field-spot">Tipo di Situazione</label>
-        <select id="field-spot">
-          <option value="call" selected>Chiamata all-in</option>
-          <option value="shove">Shove / confronto push-fold</option>
-          <option value="generic">Analisi generica delle soglie</option>
-        </select>
-      </div>
+      <span class="chip-equiv" id="equiv-villain"></span>
     </div>
 
-    <!-- Stack Table -->
-    <p class="section-head">Stack dei Giocatori</p>
+  </div>
 
-    <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:14px;">
-      <div style="display:flex;align-items:center;gap:8px;">
-        <span style="font-size:0.8rem;color:var(--text-muted);font-weight:500;">Unità stack:</span>
-        <div class="mode-toggle" role="group" aria-label="Unità di misura stack">
-          <button id="btn-unit-chips" class="active" onclick="setStackUnit('chips')">Chips</button>
-          <button id="btn-unit-bb"    class=""       onclick="setStackUnit('bb')">BB</button>
-        </div>
-      </div>
-      <div id="bb-size-wrap" style="display:none;align-items:center;gap:8px;">
-        <label for="field-bb-size" style="font-size:0.78rem;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:0.07em;white-space:nowrap;">Valore BB (chip):</label>
-        <input type="number" id="field-bb-size" min="1" value="1000" placeholder="es. 1000"
-               style="width:110px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);padding:7px 11px;font-size:0.875rem;font-family:var(--font-mono);"
-               oninput="onBBSizeChange()" aria-label="Valore in chip di 1 BB" />
-        <span style="font-size:0.73rem;color:var(--text-dim);">chip per BB</span>
-      </div>
-    </div>
-    <p class="text-muted mb16" id="stack-unit-hint" style="font-size:0.83rem;">Inserisci i conteggi chip e assegna i ruoli. Usa qualsiasi unità — il calcolatore usa le proporzioni.</p>
+  <!-- FASE TORNEO -->
+  <p class="sec-label">Fase del torneo</p>
+  <div class="field" style="margin-bottom:0;">
+    <label for="f-stage">Fase</label>
+    <select id="f-stage">
+      <option value="early">Inizio torneo (ante spenti)</option>
+      <option value="middle">Fasi intermedie</option>
+      <option value="near-bubble">Vicino alla money bubble</option>
+      <option value="itm">In the money</option>
+      <option value="final-table" selected>Final table</option>
+    </select>
+  </div>
 
-    <div class="stack-table-wrap mb24">
-      <table class="stack-table" id="stack-table">
-        <thead>
-          <tr>
-            <th>#</th>
-            <th>Giocatore</th>
-            <th id="stack-col-header">Stack</th>
-            <th>Ruolo</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody id="stack-body">
-          <!-- righe generate da JS -->
-        </tbody>
-      </table>
-      <div class="stack-actions">
-        <button class="btn-ghost" onclick="addPlayer()">+ Aggiungi Giocatore</button>
-        <button class="btn-ghost" onclick="loadExample()">Carica Esempio</button>
-        <button class="btn-ghost danger" onclick="clearStacks()">Cancella Tutto</button>
-      </div>
+  <!-- ALTRI GIOCATORI -->
+  <p class="sec-label" style="margin-top:28px;">Altri giocatori al tavolo</p>
+  <div class="others-wrap">
+    <table class="others-table" id="others-table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th id="others-col-head">Stack</th>
+          <th class="chip-col" id="others-chip-head" style="display:none;">Chip equiv.</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="others-body"></tbody>
+    </table>
+    <div class="others-table-actions">
+      <button class="btn-ghost" onclick="addOther()">+ Aggiungi giocatore</button>
+      <button class="btn-ghost danger" onclick="clearOthers()">Rimuovi tutti</button>
     </div>
+  </div>
+  <p style="font-size:0.71rem;color:var(--text-dim);margin-bottom:0;">Opzionale ma migliora la precisione. Lascia vuoto per un calcolo solo su hero vs villain.</p>
 
-    <!-- Struttura dei Pagamenti -->
-    <p class="section-head">Struttura dei Pagamenti</p>
-    <p class="text-muted mb16" style="font-size:0.83rem;">
-      Inserisci i pagamenti come percentuale del prize pool (devono sommare a 100%) oppure come importi assoluti. Il calcolatore usa solo le proporzioni.
-    </p>
-    <div id="payout-rows" class="payout-rows mb16">
-      <!-- righe generate da JS -->
+  <!-- STRUTTURA PAGAMENTI -->
+  <p class="sec-label" style="margin-top:28px;">Struttura dei pagamenti</p>
+  <div class="payout-header">
+    <span style="font-size:0.8rem;color:var(--text-muted);">Percentuali del montepremi (somma = 100%)</span>
+    <div class="payout-preset-wrap">
+      <label for="payout-preset">Preset:</label>
+      <select id="payout-preset" onchange="loadPreset(this.value)">
+        <option value="ft4">Final table 4 giocatori</option>
+        <option value="ft6">Final table 6 giocatori</option>
+        <option value="ft9">Final table 9 giocatori</option>
+        <option value="top3">Solo top 3</option>
+        <option value="flat">Struttura piatta (top 5)</option>
+        <option value="custom">Personalizzata</option>
+      </select>
     </div>
-    <div style="display:flex;gap:10px;margin-bottom:24px;">
-      <button class="btn-ghost" onclick="addPayout()">+ Aggiungi Posizione</button>
-      <button class="btn-ghost" onclick="loadExamplePayouts()">Carica Pagamenti Esempio</button>
-    </div>
+  </div>
+  <div id="payout-rows" class="payout-rows"></div>
+  <div id="payout-total" class="payout-total"></div>
+  <div style="display:flex;gap:8px;margin-top:4px;">
+    <button class="btn-ghost" onclick="addPayout()">+ Posizione</button>
+  </div>
 
-    <!-- Configurazione Situazione -->
-    <p class="section-head">Configurazione Situazione</p>
-    <div class="form-grid mb16">
-      <div class="field" id="field-pot-wrap">
-        <label for="field-pot">Dimensione del pot (chip, opzionale)</label>
-        <input type="number" id="field-pot" min="0" placeholder="es. 120000">
-        <span class="hint">Usato per stimare il pot odds chipEV se fornito.</span>
-      </div>
-      <div class="field" id="field-chipev-wrap">
-        <label for="field-chipev">Equity richiesta chipEV % <span data-tip="L'equity minima per essere in pari ignorando l'ICM. Per una chiamata all-in corrisponde all'equity da pot odds. Lascia vuoto per una stima automatica.">(?)</span></label>
-        <input type="number" id="field-chipev" min="0" max="100" step="0.1" placeholder="es. 35.0">
-        <span class="hint">Opzionale — lascia vuoto per una stima automatica basata sugli stack.</span>
-      </div>
-    </div>
+  <!-- CTA -->
+  <button class="btn-primary" onclick="calculate()">
+    Calcola Risk Premium →
+  </button>
 
-    <!-- Campi avanzati -->
-    <div id="advanced-fields" style="display:none;">
-      <p class="section-head">Parametri Avanzati</p>
-      <div class="form-grid-3 mb16">
-        <div class="field">
-          <label for="field-survivors">Posizioni pagate</label>
-          <input type="number" id="field-survivors" min="1" placeholder="es. 3">
-          <span class="hint">Numero di giocatori che ricevono un pagamento.</span>
-        </div>
-        <div class="field">
-          <label for="field-bf-override">Override bubble factor <span data-tip="Imposta manualmente un bubble factor. Lascia vuoto per il calcolo automatico. Range tipici: 1,0–1,1 profondo ITM, 1,3–2,0 vicino alla bubble.">(?)</span></label>
-          <input type="number" id="field-bf-override" min="0.5" max="5" step="0.05" placeholder="auto">
-          <span class="hint">Opzionale. Calcolato automaticamente da stack + pagamenti se lasciato vuoto.</span>
-        </div>
-        <div class="field">
-          <label for="field-call-size">Dimensione della chiamata (chip, opzionale)</label>
-          <input type="number" id="field-call-size" min="0" placeholder="es. 80000">
-          <span class="hint">Importo effettivo della chiamata per un calcolo chipEV preciso.</span>
-        </div>
+  <!-- RESULT CARD -->
+  <div class="result-card" id="result-card">
+
+    <div class="result-main">
+      <div class="result-rp-block">
+        <div class="result-rp-label">Risk Premium</div>
+        <div class="result-rp-value" id="res-rp">—</div>
+        <div class="result-rp-sub" id="res-rp-sub"></div>
+      </div>
+      <div class="gauge-block">
+        <div class="gauge-label-top">Pressione ICM</div>
+        <div class="gauge-track"><div class="gauge-fill" id="gauge-fill" style="width:0%"></div></div>
+        <div class="gauge-level" id="gauge-level"></div>
       </div>
     </div>
 
-    <div class="calc-cta">
-      <button class="btn-primary" onclick="calculate()">
-        <span>Calcola Risk Premium</span>
-        <span>→</span>
-      </button>
-      <span class="note">I risultati appariranno nella scheda Risultati.</span>
-    </div>
-
-  </section>
-
-  <!-- ========================================================
-       PANEL: RESULTS
-       ======================================================== -->
-  <section class="rpc-panel" id="panel-results" role="tabpanel" aria-labelledby="tab-results">
-    <div id="results-content">
-      <div class="results-empty">
-        <div class="icon">◎</div>
-        <p>Inserisci la tua situazione nel tab <strong>Calcolatore</strong> e premi <em>Calcola Risk Premium</em>.</p>
+    <div class="metrics-row">
+      <div class="metric">
+        <div class="metric-label">Equity min. chipEV</div>
+        <div class="metric-value" id="res-chipev">—</div>
       </div>
-    </div>
-  </section>
-
-  <!-- ========================================================
-       PANEL: LEARN
-       ======================================================== -->
-  <section class="rpc-panel" id="panel-learn" role="tabpanel" aria-labelledby="tab-learn">
-
-    <div class="learn-full">
-      <h3>Cos'è il Risk Premium nel Poker Tournament?</h3>
-      <p>In un cash game, il tuo unico obiettivo è massimizzare il valore atteso in chip. Ma in un torneo, i chip hanno un valore marginale decrescente — la differenza tra 100.000 e 200.000 chip non si traduce linearmente in montepremi aggiuntivo. Questo è il fondamento dell'ICM (Independent Chip Model).</p>
-      <p><strong style="color:var(--text)">Il risk premium</strong> è l'equity extra che ti serve rispetto a quanto suggerirebbe un semplice calcolo chipEV — perché bustarsi significa perdere tutta l'equity rimanente nel montepremi, mentre raddoppiare non la guadagna in modo equivalente.</p>
-      <div class="formula">Risk Premium  =  Equity richiesta ICM  −  Equity richiesta chipEV</div>
-      <p>Una chiamata chipEV al 33% di equity potrebbe essere corretta sotto ICM solo al 42%. Il divario del 9% è il tuo risk premium — la "tassa ICM" su questa situazione.</p>
-    </div>
-
-    <div class="learn-grid mb24">
-      <div class="learn-card">
-        <div class="learn-card-title">Perché la Vita nel Torneo ha Valore Extra</div>
-        <p>Quando ti busti da un torneo, perdi tutta l'equity futura nel montepremi — non solo il pot corrente. Ogni chip che rischi porta con sé il potenziale costo dell'eliminazione. Vincere chip aggiunge equity in modo curvo e decrescente; perdere chip può portarti a zero.</p>
-        <p>Questa asimmetria significa che <strong style="color:var(--text)">il fold ha un EV nascosto</strong> in situazioni dove il chipEV dice di chiamare.</p>
+      <div class="metric">
+        <div class="metric-label">Equity min. ICM</div>
+        <div class="metric-value amber" id="res-icm">—</div>
       </div>
-      <div class="learn-card">
-        <div class="learn-card-title">Stack Coperto vs. Stack Coprente</div>
-        <p>Se sei lo <em>stack coperto</em> (il più corto), perdere questo all-in significa l'eliminazione. Il tuo risk premium è alto perché il costo della perdita è massimo.</p>
-        <p>Se sei lo <em>stack coprente</em> (il più alto), sopravvivi anche se perdi. Il tuo svantaggio è limitato, quindi il tuo risk premium è più basso — puoi chiamare più largamente.</p>
-        <ul>
-          <li>Giocatore coperto: risk premium più alto, range di chiamata più stretto</li>
-          <li>Giocatore coprente: risk premium più basso, può chiamare più largamente</li>
-        </ul>
-      </div>
-      <div class="learn-card">
-        <div class="learn-card-title">Bubble e Salti di Pagamento</div>
-        <p>Il risk premium raggiunge il picco in due momenti:</p>
-        <ul>
-          <li><strong style="color:var(--text)">La money bubble</strong> — bustarsi significa $0. Ogni eliminazione avvicina tutti gli altri giocatori a incassare.</li>
-          <li><strong style="color:var(--text)">I salti di pagamento importanti</strong> — es. 4°→3° o 3°→2° a un final table dove la differenza di pagamento è grande.</li>
-        </ul>
-        <p>Vicino a questi momenti, anche le chiamate con buona equity possono essere errori ICM.</p>
-      </div>
-      <div class="learn-card">
-        <div class="learn-card-title">Bubble Factor vs. Risk Premium</div>
-        <p><strong style="color:var(--text)">Il bubble factor</strong> (BF) è il rapporto tra quanto perdi per chip rispetto a quanto guadagni per chip in termini di equity nel montepremi. Un BF di 1,5 significa che perdere un chip costa il 50% in più in termini di equity rispetto a quanto si guadagna vincendolo.</p>
-        <div class="formula">BF = |∂EV/∂chip_persi| ÷ |∂EV/∂chip_vinti|</div>
-        <p>Il risk premium traduce il bubble factor in soglie decisionali pratiche — quanto aumenta la tua equity richiesta in questa situazione specifica.</p>
+      <div class="metric">
+        <div class="metric-label">Bubble Factor</div>
+        <div class="metric-value" id="res-bf">—</div>
       </div>
     </div>
 
-    <div class="learn-full">
-      <h3>Implicazioni Pratiche per la Strategia</h3>
-      <ul>
-        <li>Vicino a una bubble, fai fold di mani che normalmente chiameresti — anche un vantaggio di equity moderato potrebbe non compensare il risk premium.</li>
-        <li>Shova largo come big stack per sfruttare l'alto risk premium degli altri — hanno bisogno di molta più equity per chiamarti.</li>
-        <li>Fai attenzione a chi copre chi. Uno short stack che chiama un big stack è la situazione con il risk premium più alto nel poker.</li>
-        <li>I salti di pagamento resettano la dinamica — ad ogni salto significativo, il risk premium aumenta temporaneamente di nuovo.</li>
-        <li>Il chipEV conta ancora. Non correggere eccessivamente foldando tutte le situazioni borderline; la pressione ICM è reale ma finita.</li>
-      </ul>
+    <div class="summary" id="res-summary"></div>
+
+    <div class="approx-note">
+      <span class="icon">ℹ</span>
+      <span id="res-approx-note"></span>
     </div>
 
-  </section>
+  </div>
 
-  <!-- ========================================================
-       PANEL: MODEL & ASSUMPTIONS
-       ======================================================== -->
-  <section class="rpc-panel" id="panel-model" role="tabpanel" aria-labelledby="tab-model" style="display:none!important;">
-
-    <div class="assume-block">
-      <h3>Panoramica del Modello <span class="tag-approx">Approssimazione</span></h3>
-      <p>Questo strumento usa un'<strong style="color:var(--text)">approssimazione ICM semplificata</strong>, non un motore ICM di livello solver. Il calcolo è trasparente, modulare e progettato per essere sostituito da un motore più preciso in una versione futura.</p>
-      <p><em>Questa è un'approssimazione pratica per uso didattico, non un motore ICM di livello solver.</em></p>
-    </div>
-
-    <div class="assume-block">
-      <h3>Cosa è Calcolato Esattamente <span class="tag-exact">Esatto</span></h3>
-      <ul>
-        <li><strong style="color:var(--text)">Proporzioni degli stack</strong> — derivate direttamente dagli input.</li>
-        <li><strong style="color:var(--text)">Proporzioni dei pagamenti</strong> — normalizzate dagli input.</li>
-        <li><strong style="color:var(--text)">Relazione di copertura</strong> — determinata esattamente dalle dimensioni degli stack.</li>
-        <li><strong style="color:var(--text)">Equity richiesta chipEV</strong> — esatta quando sono forniti pot e dimensione della chiamata; stimata altrimenti.</li>
-        <li><strong style="color:var(--text)">ICM Malmuth-Harville semplificato</strong> — per ≤6 giocatori viene eseguito un calcolo ICM completo Malmuth-Harville.</li>
-      </ul>
-    </div>
-
-    <div class="assume-block">
-      <h3>Cosa è Approssimato <span class="tag-approx">Approssimato</span></h3>
-      <ul>
-        <li><strong style="color:var(--text)">Bubble factor</strong> — calcolato dalle differenze di equity ICM pre/post all-in usando il modello Malmuth-Harville. Per più di 6 giocatori si usa un ICM proporzionale semplificato.</li>
-        <li><strong style="color:var(--text)">Risk premium</strong> — derivato dal bubble factor usando la formula standard. Esatto solo se il bubble factor è esatto.</li>
-        <li><strong style="color:var(--text)">Correzione per fase</strong> — un piccolo modificatore empirico applicato in base alla fase dichiarata del torneo (±0–3pp), che riflette i pattern noti di pressione ICM.</li>
-        <li><strong style="color:var(--text)">Equity chipEV predefinita</strong> — quando non vengono forniti dati di pot/chiamata, viene usato come base un valore predefinito del 33%.</li>
-      </ul>
-    </div>
-
-    <div class="assume-block">
-      <h3>Architettura del Calcolo</h3>
-      <p>Il codice è separato in moduli indipendenti per facilitare sostituzioni future:</p>
-      <div class="code-block">
-// Confini dei moduli (vedi JS sorgente)
-TournamentModel   — normalizzazione stack/pagamenti
-ICMEngine         — calcolo equity ICM Malmuth-Harville
-BubbleFactorCalc  — rapporti ∂EV/∂chip dalle differenze ICM
-RiskPremiumCalc   — bubble factor → soglia equity richiesta
-Interpreter       — generazione risultati in linguaggio semplice
-Renderer          — output DOM (completamente separato dalla logica)
-      </div>
-    </div>
-
-    <div class="assume-block">
-      <h3>Punti in cui un Futuro Motore ICM Esatto può Sostituire la Logica Attuale</h3>
-      <ul>
-        <li><strong style="color:var(--text)">ICMEngine.computeEquities(stacks, payouts)</strong> — sostituire l'approssimazione Malmuth-Harville con un solver ICM ricorsivo completo o un motore ICM di equilibrio Nash (stile ICMIZER).</li>
-        <li><strong style="color:var(--text)">BubbleFactorCalc.compute(heroIdx, villainIdx, stacks, payouts)</strong> — sostituire la stima BF basata su delta con calcoli di derivata parziale chip per chip.</li>
-        <li><strong style="color:var(--text)">RiskPremiumCalc.fromBubbleFactor(bf, chipevEq)</strong> — la formula è standard; migliorare fornendo un input BF esatto.</li>
-        <li><strong style="color:var(--text)">Coefficienti di correzione per fase</strong> — sostituire con dati empirici reali o calcoli ICM specifici per fase.</li>
-      </ul>
-    </div>
-
-    <div class="assume-block">
-      <h3>Disclaimer</h3>
-      <p>Questo strumento è a scopo educativo e analitico. I risultati sono approssimazioni e non devono essere considerati soluzioni GTO precise. Il poker tournament coinvolge molte variabili qui non considerate — tendenze dei giocatori, range di mani, implicazioni dei side pot e altro ancora. Usa sempre più risorse quando studi la strategia del poker tournament.</p>
-    </div>
-
-  </section>
-
-  <!-- FOOTER -->
-  <footer class="rpc-footer">
-    Calcolatore Risk Premium &nbsp;·&nbsp; Motore di approssimazione ICM &nbsp;·&nbsp; Solo uso didattico &nbsp;·&nbsp;
-    <span style="color:var(--amber)">Non è uno strumento di livello solver</span>
+  <footer class="footer">
+    Risk Premium Calculator &nbsp;·&nbsp; Approssimazione ICM &nbsp;·&nbsp;
+    <span style="color:var(--amber)">Solo uso didattico</span>
   </footer>
 
-</div><!-- /rpc-root -->
-
+</div>
 <script>
 /* ============================================================
    STATO
    ============================================================ */
-let appMode = 'basic';   // 'basic' | 'advanced'
-let stackUnit = 'chips'; // 'chips' | 'bb'
-let bbSize = 1000;       // valore in chip di 1 BB
-let players = [];        // { name, stack, role: 'hero'|'villain'|'other' }
-let payouts = [];        // valori numerici (percentuali o importi)
-let lastResult = null;
+let unit   = 'bb';    // 'chips' | 'bb'
+let bbSize = 1000;    // chip per 1 BB
+let others = [];      // array di chip values (sempre in chip internamente)
+let payouts = [];     // proporzioni (%)
+
+/* ============================================================
+   PRESET PAGAMENTI
+   ============================================================ */
+const PRESETS = {
+  ft4:   [45, 27, 17, 11],
+  ft6:   [35, 22, 15, 12, 9, 7],
+  ft9:   [30, 20, 13, 10, 8, 6, 5, 4.5, 3.5],
+  top3:  [50, 30, 20],
+  flat:  [25, 22, 20, 18, 15],
+};
 
 /* ============================================================
    INIT
    ============================================================ */
 document.addEventListener('DOMContentLoaded', () => {
-  loadExample();
+  setUnit('bb');
+  loadPreset('ft4');
 });
 
 /* ============================================================
-   CAMBIO MODALITÀ
+   UNITÀ
    ============================================================ */
-function setMode(mode) {
-  appMode = mode;
-  document.getElementById('btn-basic').classList.toggle('active', mode === 'basic');
-  document.getElementById('btn-advanced').classList.toggle('active', mode === 'advanced');
-  document.getElementById('advanced-fields').style.display = mode === 'advanced' ? 'block' : 'none';
+function setUnit(u) {
+  unit = u;
+  document.getElementById('btn-chips').classList.toggle('active', u === 'chips');
+  document.getElementById('btn-bb').classList.toggle('active',    u === 'bb');
+  const bbWrap = document.getElementById('bb-size-wrap');
+  bbWrap.classList.toggle('visible', u === 'bb');
+
+  const badge = u === 'bb' ? 'BB' : 'chip';
+  document.getElementById('badge-hero').textContent    = badge;
+  document.getElementById('badge-villain').textContent = badge;
+
+  // Intestazione colonna altri giocatori
+  document.getElementById('others-col-head').textContent = u === 'bb' ? 'Stack (BB)' : 'Stack (chip)';
+  const chipHead = document.getElementById('others-chip-head');
+  chipHead.style.display = u === 'bb' ? '' : 'none';
+
+  updateEquivLabels();
+  renderOthers();
 }
 
-/* ============================================================
-   NAVIGAZIONE TAB
-   ============================================================ */
-function showTab(name) {
-  document.querySelectorAll('.rpc-panel').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.rpc-tabs button').forEach(b => {
-    b.classList.remove('active');
-    b.setAttribute('aria-selected', 'false');
+function onBBChange() {
+  bbSize = parseInt(document.getElementById('field-bb-size').value) || 1000;
+  updateEquivLabels();
+  renderOthers();
+}
+
+/* Mostra equivalenza chip↔BB sotto i campi hero/villain */
+function updateEquivLabels() {
+  ['hero','villain'].forEach(id => {
+    const val = parseFloat(document.getElementById('f-' + id).value) || 0;
+    const el  = document.getElementById('equiv-' + id);
+    if (!val) { el.textContent = ''; return; }
+    if (unit === 'bb') {
+      el.textContent = '= ' + Math.round(val * bbSize).toLocaleString('it-IT') + ' chip';
+    } else {
+      const bb = (val / bbSize).toFixed(1);
+      el.textContent = '= ' + bb + ' BB';
+    }
   });
-  document.getElementById('panel-' + name).classList.add('active');
-  const tb = document.getElementById('tab-' + name);
-  tb.classList.add('active');
-  tb.setAttribute('aria-selected', 'true');
+}
+
+function onStackInput(id) {
+  updateEquivLabels();
+}
+
+/* Converte input utente in chip (unità interna) */
+function toChips(val) {
+  return unit === 'bb' ? Math.round(val * bbSize) : val;
 }
 
 /* ============================================================
-   GESTIONE TABELLA STACK
+   ALTRI GIOCATORI
    ============================================================ */
-function renderStackTable() {
-  const tbody = document.getElementById('stack-body');
+function renderOthers() {
+  const tbody = document.getElementById('others-body');
   tbody.innerHTML = '';
-  players.forEach((p, i) => {
-    // Display value: always stored in chips internally; show BB if unit=bb
-    const displayVal = stackUnit === 'bb' && bbSize > 0
-      ? (p.stack / bbSize).toFixed(1)
-      : (p.stack || '');
+  others.forEach((chips, i) => {
+    const displayVal = unit === 'bb' && bbSize > 0
+      ? (chips / bbSize).toFixed(1)
+      : chips;
+    const chipEquiv  = unit === 'bb' ? chips.toLocaleString('it-IT') : '';
     const tr = document.createElement('tr');
     tr.innerHTML = `
-      <td style="font-family:var(--font-mono);color:var(--text-muted);font-size:0.78rem;">${i + 1}</td>
-      <td><input type="text" value="${esc(p.name)}" oninput="players[${i}].name=this.value" style="max-width:130px;" aria-label="Nome giocatore ${i+1}" /></td>
+      <td style="font-family:var(--font-mono);font-size:0.73rem;color:var(--text-dim);">${i+1}</td>
       <td>
-        <div style="display:flex;align-items:center;gap:6px;">
-          <input type="number" value="${displayVal}" min="0" step="${stackUnit==='bb'?'0.5':'100'}"
-                 oninput="setPlayerStack(${i}, this.value)"
-                 aria-label="Stack giocatore ${i+1}" style="max-width:100px;" />
-          <span style="font-family:var(--font-mono);font-size:0.7rem;color:var(--text-dim);flex-shrink:0;">
-            ${stackUnit === 'bb' ? 'BB' : 'chip'}
-          </span>
-          ${stackUnit === 'bb' && p.stack > 0
-            ? `<span style="font-family:var(--font-mono);font-size:0.68rem;color:var(--text-dim);flex-shrink:0;">(${p.stack.toLocaleString('it-IT')} chip)</span>`
-            : ''}
-        </div>
+        <input type="number" value="${displayVal||''}" min="0"
+               step="${unit==='bb'?'0.5':'100'}"
+               oninput="setOther(${i}, this.value)"
+               aria-label="Stack giocatore ${i+1}" />
+      </td>
+      <td class="chip-col" style="display:${unit==='bb'?'':'none'};">
+        <span id="other-equiv-${i}">${chips > 0 ? chipEquiv + ' ch' : ''}</span>
       </td>
       <td>
-        <select onchange="setRole(${i}, this.value)" aria-label="Ruolo giocatore ${i+1}">
-          <option value="other"  ${p.role==='other'  ?'selected':''}>Altro</option>
-          <option value="hero"   ${p.role==='hero'   ?'selected':''}>Hero</option>
-          <option value="villain"${p.role==='villain'?'selected':''}>Villain</option>
-        </select>
+        <button class="btn-ghost danger" onclick="removeOther(${i})" aria-label="Rimuovi">×</button>
       </td>
-      <td><button class="btn-ghost danger" onclick="removePlayer(${i})" aria-label="Rimuovi giocatore ${i+1}">×</button></td>
     `;
     tbody.appendChild(tr);
   });
-  updateRoleBadges();
 }
 
-function updateRoleBadges() {
-  const rows = document.querySelectorAll('#stack-body tr');
-  rows.forEach((tr, i) => {
-    const r = players[i]?.role || 'other';
-    tr.style.background = r === 'hero'
-      ? 'color-mix(in srgb, var(--amber) 5%, transparent)'
-      : r === 'villain'
-      ? 'color-mix(in srgb, var(--red) 5%, transparent)'
-      : '';
-  });
-}
-
-function setRole(i, role) {
-  players[i].role = role;
-  updateRoleBadges();
-}
-
-/* Imposta lo stack di un giocatore convertendo da BB a chip se necessario */
-function setPlayerStack(i, val) {
+function setOther(i, val) {
   const v = parseFloat(val) || 0;
-  players[i].stack = stackUnit === 'bb' ? Math.round(v * bbSize) : v;
-  // Aggiorna il tooltip chip se in modalità BB (senza re-render completo)
-  const rows = document.querySelectorAll('#stack-body tr');
-  if (rows[i]) {
-    const span = rows[i].querySelector('td:nth-child(3) span:last-child');
-    if (span && stackUnit === 'bb' && players[i].stack > 0) {
-      span.textContent = '(' + players[i].stack.toLocaleString('it-IT') + ' chip)';
-    }
-  }
+  others[i] = toChips(v);
+  const el = document.getElementById('other-equiv-' + i);
+  if (el) el.textContent = others[i] > 0 ? others[i].toLocaleString('it-IT') + ' ch' : '';
 }
 
-/* Cambia unità stack tra chip e BB */
-function setStackUnit(unit) {
-  stackUnit = unit;
-  bbSize = parseInt(document.getElementById('field-bb-size').value) || 1000;
-  document.getElementById('btn-unit-chips').classList.toggle('active', unit === 'chips');
-  document.getElementById('btn-unit-bb').classList.toggle('active', unit === 'bb');
-  const bbWrap = document.getElementById('bb-size-wrap');
-  bbWrap.style.display = unit === 'bb' ? 'flex' : 'none';
-  const hint = document.getElementById('stack-unit-hint');
-  const col  = document.getElementById('stack-col-header');
-  if (unit === 'bb') {
-    hint.textContent = 'Inserisci gli stack in Big Blind (BB). Il calcolatore converte automaticamente in chip usando il valore BB impostato.';
-    col.textContent = 'Stack (BB)';
-  } else {
-    hint.textContent = 'Inserisci i conteggi chip e assegna i ruoli. Usa qualsiasi unità — il calcolatore usa le proporzioni.';
-    col.textContent = 'Stack';
-  }
-  renderStackTable();
+function addOther() {
+  others.push(0);
+  renderOthers();
 }
 
-/* Aggiorna bbSize quando l'utente cambia il campo e ri-renderizza */
-function onBBSizeChange() {
-  bbSize = parseInt(document.getElementById('field-bb-size').value) || 1000;
-  renderStackTable();
+function removeOther(i) {
+  others.splice(i, 1);
+  renderOthers();
 }
 
-function addPlayer() {
-  players.push({ name: `Giocatore ${players.length + 1}`, stack: 0, role: 'other' });
-  renderStackTable();
-}
-
-function removePlayer(i) {
-  if (players.length <= 2) { alert('Servono almeno 2 giocatori.'); return; }
-  players.splice(i, 1);
-  renderStackTable();
-}
-
-function clearStacks() {
-  players = [];
-  renderStackTable();
-}
-
-function loadExample() {
-  // Esempio: final table 4 giocatori, BB = 10.000 chip
-  // Stack memorizzati sempre in chip
-  document.getElementById('field-bb-size').value = 10000;
-  bbSize = 10000;
-  players = [
-    { name: 'Hero',        stack: 280000, role: 'hero' },
-    { name: 'Villain',     stack: 420000, role: 'villain' },
-    { name: 'Giocatore 3', stack: 190000, role: 'other' },
-    { name: 'Giocatore 4', stack: 110000, role: 'other' },
-  ];
-  renderStackTable();
-  document.getElementById('field-stage').value = 'final-table';
-  document.getElementById('field-spot').value  = 'call';
-  document.getElementById('field-chipev').value = '35';
-  loadExamplePayouts();
+function clearOthers() {
+  others = [];
+  renderOthers();
 }
 
 /* ============================================================
-   GESTIONE TABELLA PAGAMENTI
+   PAGAMENTI
    ============================================================ */
+function loadPreset(key) {
+  if (key === 'custom') return;
+  payouts = [...(PRESETS[key] || PRESETS.ft4)];
+  renderPayouts();
+}
+
 function renderPayouts() {
   const container = document.getElementById('payout-rows');
   container.innerHTML = '';
@@ -1321,275 +808,95 @@ function renderPayouts() {
     const div = document.createElement('div');
     div.className = 'payout-row';
     div.innerHTML = `
-      <span class="pos-label">${ordinale(i+1)} posto</span>
+      <span class="pos-label">${i+1}° posto</span>
       <input type="number" value="${v}" min="0" step="0.1"
-             oninput="payouts[${i}]=parseFloat(this.value)||0"
-             aria-label="Pagamento ${ordinale(i+1)} posto" />
-      <button class="remove-btn" onclick="removePayout(${i})" aria-label="Rimuovi pagamento ${ordinale(i+1)} posto">×</button>
+             oninput="payouts[${i}]=parseFloat(this.value)||0; updatePayoutTotal()"
+             aria-label="${i+1}° posto pagamento" />
+      <button class="rm-btn" onclick="removePayout(${i})">×</button>
     `;
     container.appendChild(div);
   });
+  updatePayoutTotal();
 }
 
 function addPayout() {
   payouts.push(0);
+  document.getElementById('payout-preset').value = 'custom';
   renderPayouts();
 }
 
 function removePayout(i) {
-  if (payouts.length <= 1) { alert('Serve almeno 1 pagamento.'); return; }
+  if (payouts.length <= 1) return;
   payouts.splice(i, 1);
+  document.getElementById('payout-preset').value = 'custom';
   renderPayouts();
 }
 
-function loadExamplePayouts() {
-  payouts = [40, 25, 18, 17];
-  renderPayouts();
+function updatePayoutTotal() {
+  const total = payouts.reduce((s, v) => s + v, 0);
+  const el = document.getElementById('payout-total');
+  el.textContent = 'Totale: ' + total.toFixed(1) + '%';
+  el.className = 'payout-total ' + (Math.abs(total - 100) < 0.5 ? 'ok' : 'warn');
 }
 
 /* ============================================================
-   VALIDAZIONE INPUT
+   VALIDAZIONE
    ============================================================ */
 function validate() {
   const errors = [];
+  const heroIn    = parseFloat(document.getElementById('f-hero').value);
+  const villainIn = parseFloat(document.getElementById('f-villain').value);
 
-  document.querySelectorAll('#stack-body tr').forEach((tr, i) => {
-    const inputs = tr.querySelectorAll('input');
-    if (inputs[0]) players[i].name = inputs[0].value;
-    if (inputs[1]) {
-      const v = parseFloat(inputs[1].value) || 0;
-      players[i].stack = stackUnit === 'bb' ? Math.round(v * bbSize) : v;
-    }
-  });
+  if (isNaN(heroIn)    || heroIn    <= 0) errors.push('Inserisci il tuo stack (Hero).');
+  if (isNaN(villainIn) || villainIn <= 0) errors.push('Inserisci lo stack del villain.');
+  if (payouts.length === 0)               errors.push('Aggiungi almeno una posizione pagata.');
+  if (payouts.some(v => v <= 0))          errors.push('Tutti i pagamenti devono essere maggiori di zero.');
 
-  if (players.length < 2) errors.push('Servono almeno 2 giocatori.');
-
-  const hasHero    = players.some(p => p.role === 'hero');
-  const hasVillain = players.some(p => p.role === 'villain');
-  if (!hasHero)    errors.push('Assegna un giocatore come Hero.');
-  if (!hasVillain) errors.push('Assegna un giocatore come Villain.');
-
-  if (players.some(p => p.stack <= 0)) errors.push('Tutti gli stack devono essere maggiori di zero.');
-
-  if (payouts.length === 0) errors.push('Aggiungi almeno un pagamento.');
-  if (payouts.some(v => v <= 0)) errors.push('Tutti i valori di pagamento devono essere maggiori di zero.');
-  if (payouts.length > players.length) errors.push('Non ci possono essere più posizioni pagate che giocatori.');
-
-  const chipev = parseFloat(document.getElementById('field-chipev').value);
-  if (!isNaN(chipev) && (chipev < 0 || chipev > 100)) errors.push("L'equity richiesta chipEV deve essere tra 0 e 100.");
+  const payTotal = payouts.reduce((s,v) => s+v, 0);
+  if (Math.abs(payTotal - 100) > 5)       errors.push('I pagamenti devono sommare circa a 100%.');
 
   return errors;
 }
 
 /* ============================================================
-   MODULO: TournamentModel
-   Normalizza stack e pagamenti, calcola la copertura.
+   MODULO ICM — Malmuth-Harville (≤6 giocatori) o proporzionale
    ============================================================ */
-const TournamentModel = {
-  build(players, payouts) {
-    const totalChips = players.reduce((s, p) => s + p.stack, 0);
-    const totalPayout = payouts.reduce((s, v) => s + v, 0);
+function icmEquities(stacks, pays) {
+  if (stacks.length <= 6) return malmuthHarville(stacks, pays);
+  return propApprox(stacks, pays);
+}
 
-    const stacks = players.map(p => p.stack / totalChips);
-    const pays   = payouts.map(v => v / totalPayout);
-
-    const heroIdx    = players.findIndex(p => p.role === 'hero');
-    const villainIdx = players.findIndex(p => p.role === 'villain');
-
-    const heroStack    = players[heroIdx].stack;
-    const villainStack = players[villainIdx].stack;
-
-    const coverage =
-      heroStack < villainStack ? 'covered' :
-      heroStack > villainStack ? 'covering' : 'equal';
-
-    return { stacks, pays, heroIdx, villainIdx, totalChips, coverage };
-  }
-};
-
-/* ============================================================
-   MODULO: ICMEngine
-   ICM Malmuth-Harville per ≤6 giocatori (esatto, basato su permutazioni).
-   Per >6 giocatori, usa un'approssimazione proporzionale.
-   Questo è il punto principale di sostituzione per un motore solver completo.
-   ============================================================ */
-const ICMEngine = {
-
-  computeEquities(stacks, pays) {
-    const n = stacks.length;
-    if (n <= 6) {
-      return this._malmuthHarville(stacks, pays);
-    } else {
-      return this._proportionalApprox(stacks, pays);
+function malmuthHarville(stacks, pays) {
+  const n = stacks.length;
+  const eq = new Array(n).fill(0);
+  const enumerate = (rem, pIdx, prob) => {
+    if (pIdx >= pays.length || rem.length === 0) return;
+    const tot = rem.reduce((s, r) => s + r.chips, 0);
+    for (let i = 0; i < rem.length; i++) {
+      const { idx, chips } = rem[i];
+      const p = chips / tot;
+      eq[idx] += prob * p * pays[pIdx];
+      enumerate(rem.filter((_,j) => j !== i), pIdx + 1, prob * p);
     }
-  },
+  };
+  enumerate(stacks.map((chips, idx) => ({ idx, chips })), 0, 1);
+  return eq;
+}
 
-  _malmuthHarville(stacks, pays) {
-    const n = stacks.length;
-    const equities = new Array(n).fill(0);
-
-    const enumerate = (remaining, payIdx, prob) => {
-      if (payIdx >= pays.length || remaining.length === 0) return;
-      const remTotal = remaining.reduce((s, v) => s + v, 0);
-      for (let i = 0; i < remaining.length; i++) {
-        const { origIdx, chips } = remaining[i];
-        const p = chips / remTotal;
-        equities[origIdx] += prob * p * pays[payIdx];
-        const next = remaining.filter((_, j) => j !== i);
-        enumerate(next, payIdx + 1, prob * p);
-      }
-    };
-
-    const indexed = stacks.map((chips, origIdx) => ({ origIdx, chips }));
-    enumerate(indexed, 0, 1);
-    return equities;
-  },
-
-  _proportionalApprox(stacks, pays) {
-    const total = stacks.reduce((s, v) => s + v, 0);
-    const paidPlaces = pays.length;
-    const equities = stacks.map(s => {
-      let eq = 0;
-      for (let place = 0; place < paidPlaces; place++) {
-        const rankWeight = Math.pow(s / total, 1 + place * 0.3);
-        eq += rankWeight * pays[place];
-      }
-      return eq;
-    });
-    const eqTotal = equities.reduce((s, v) => s + v, 0);
-    return equities.map(e => e / eqTotal * pays.reduce((s, v) => s + v, 0));
-  }
-};
+function propApprox(stacks, pays) {
+  const total = stacks.reduce((s, v) => s + v, 0);
+  const eq = stacks.map(s => {
+    let e = 0;
+    pays.forEach((p, place) => { e += Math.pow(s / total, 1 + place * 0.3) * p; });
+    return e;
+  });
+  const eqTot = eq.reduce((s,v) => s + v, 0);
+  const payTot = pays.reduce((s,v) => s + v, 0);
+  return eq.map(e => e / eqTot * payTot);
+}
 
 /* ============================================================
-   MODULO: BubbleFactorCalc
-   Calcola il bubble factor per il confronto hero vs. villain.
-   BF = (equity persa se hero si busta) / (equity guadagnata se hero raddoppia)
-   Questo è il punto principale di sostituzione per il calcolo BF esatto.
-   ============================================================ */
-const BubbleFactorCalc = {
-
-  compute(model, pays, players) {
-    const { stacks, heroIdx, villainIdx } = model;
-    const n = stacks.length;
-
-    const baseEquities = ICMEngine.computeEquities(stacks, pays);
-    const heroBase = baseEquities[heroIdx];
-
-    const heroStack    = stacks[heroIdx];
-    const villainStack = stacks[villainIdx];
-    const effectiveStack = Math.min(heroStack, villainStack);
-
-    const winStacks = [...stacks];
-    winStacks[heroIdx]    = heroStack + effectiveStack;
-    winStacks[villainIdx] = villainStack - effectiveStack;
-    let winPays = [...pays];
-    if (winStacks[villainIdx] <= 0) {
-      winStacks.splice(villainIdx, 1);
-      winPays = pays.slice(0, n - 1);
-      const heroWinIdx = villainIdx < heroIdx ? heroIdx - 1 : heroIdx;
-      const winEqs = ICMEngine.computeEquities(winStacks, winPays);
-      var heroWin = winEqs[heroWinIdx];
-    } else {
-      const winEqs = ICMEngine.computeEquities(winStacks, winPays);
-      var heroWin = winEqs[heroIdx];
-    }
-
-    const loseStacks = [...stacks];
-    loseStacks[heroIdx]    = heroStack - effectiveStack;
-    loseStacks[villainIdx] = villainStack + effectiveStack;
-    let losePays = [...pays];
-    if (loseStacks[heroIdx] <= 0) {
-      loseStacks.splice(heroIdx, 1);
-      losePays = pays.slice(0, n - 1);
-      var heroLose = 0;
-    } else {
-      const loseEqs = ICMEngine.computeEquities(loseStacks, losePays);
-      var heroLose = loseEqs[heroIdx];
-    }
-
-    const gain = heroWin - heroBase;
-    const loss = heroBase - heroLose;
-
-    if (gain <= 0) return { bf: 1.0, gain, loss, heroBase, heroWin, heroLose };
-    const bf = loss / gain;
-    return { bf: Math.max(1.0, bf), gain, loss, heroBase, heroWin, heroLose };
-  }
-};
-
-/* ============================================================
-   MODULO: RiskPremiumCalc
-   Converte il bubble factor in soglie di equity richiesta.
-   ============================================================ */
-const RiskPremiumCalc = {
-
-  fromBubbleFactor(bf, chipevEq) {
-    const icmEq = bf / (1 + bf);
-    const rp    = icmEq - chipevEq;
-    return {
-      icmEq:    Math.min(icmEq, 0.999),
-      chipevEq: chipevEq,
-      rp:       Math.max(0, rp)
-    };
-  },
-
-  stageModifier(stage) {
-    const m = { 'early': -0.01, 'middle': 0, 'near-bubble': 0.025, 'itm': 0.01, 'final-table': 0.015 };
-    return m[stage] || 0;
-  }
-};
-
-/* ============================================================
-   MODULO: Interpreter
-   Converte i risultati numerici in spiegazioni in linguaggio semplice.
-   ============================================================ */
-const Interpreter = {
-
-  pressureLevel(rp) {
-    if (rp < 0.02) return { level: 'Molto Bassa', color: 'var(--teal)',  pct: 15 };
-    if (rp < 0.05) return { level: 'Bassa',        color: 'var(--teal)',  pct: 30 };
-    if (rp < 0.09) return { level: 'Moderata',     color: 'var(--amber)', pct: 52 };
-    if (rp < 0.14) return { level: 'Alta',          color: 'var(--amber)', pct: 72 };
-    if (rp < 0.20) return { level: 'Molto Alta',    color: 'var(--red)',   pct: 88 };
-    return                 { level: 'Estrema',       color: 'var(--red)',   pct: 100 };
-  },
-
-  summary(rp, bf, coverage, stage) {
-    const covText = coverage === 'covered'
-      ? 'Sei lo stack coperto — bustarti qui significa eliminazione.'
-      : coverage === 'covering'
-      ? 'Sei lo stack coprente — sopravvivi anche se perdi questo confronto.'
-      : 'Gli stack sono approssimativamente uguali — rischio pieno su entrambi i lati.';
-
-    if (rp < 0.02) return `${covText} La pressione ICM è minima in questa situazione — la tua decisione è vicina al chipEV.`;
-    if (rp < 0.06) return `${covText} C'è un modesto risk premium qui. Dovresti essere leggermente più stretto di quanto suggerisce il chipEV, ma l'aggiustamento è piccolo.`;
-    if (rp < 0.12) return `${covText} Risk premium significativo. Hai bisogno di equity sostanzialmente maggiore rispetto al chipEV per giustificare questa chiamata — l'ICM è un fattore reale in questa decisione.`;
-    return `${covText} Risk premium estremo. Hai bisogno di molta più equity rispetto al chipEV. Questa è una situazione ICM ad alta pressione — foldare mani che sono break-even in chipEV è probabilmente corretto.`;
-  },
-
-  whyHigh(rp, bf, coverage, stage, payouts) {
-    const reasons = [];
-    if (coverage === 'covered') reasons.push('Sei lo stack coperto, quindi perdere significa eliminazione.');
-    if (stage === 'near-bubble') reasons.push('Sei vicino alla money bubble, dove la pressione ICM raggiunge il picco.');
-    if (stage === 'final-table') reasons.push('I salti di pagamento al final table amplificano il costo di ogni eliminazione.');
-    if (bf > 1.5) reasons.push(`Alto bubble factor (${bf.toFixed(2)}) — ogni chip che perdi vale significativamente più equity di ogni chip che guadagni.`);
-    const maxPay = Math.max(...payouts);
-    const minPay = Math.min(...payouts);
-    if (maxPay / minPay > 2.5) reasons.push('Struttura dei pagamenti ripida — grandi differenze di equity tra le posizioni di arrivo aumentano la pressione ICM.');
-    if (reasons.length === 0) reasons.push('Stack equilibrati e una struttura dei pagamenti più piatta mantengono basso il risk premium in questa situazione.');
-    return reasons;
-  },
-
-  coverageExplanation(coverage, heroStack, villainStack) {
-    const ratio = (heroStack / villainStack).toFixed(2);
-    if (coverage === 'covered')  return `Hero (${ratio}x) è coperto — tutti i chip sono a rischio in caso di perdita.`;
-    if (coverage === 'covering') return `Hero (${ratio}x) copre il villain — sopravvive anche in caso di perdita.`;
-    return 'Gli stack sono uguali — rischio simmetrico su entrambi i lati.';
-  }
-};
-
-/* ============================================================
-   FUNZIONE PRINCIPALE DI CALCOLO
+   CALCOLA
    ============================================================ */
 function calculate() {
   const errors = validate();
@@ -1602,257 +909,148 @@ function calculate() {
   }
   banner.classList.remove('visible');
 
-  const stage     = document.getElementById('field-stage').value;
-  const spotType  = document.getElementById('field-spot').value;
-  const chipevIn  = parseFloat(document.getElementById('field-chipev').value);
-  const potIn     = parseFloat(document.getElementById('field-pot').value);
-  const callIn    = parseFloat(document.getElementById('field-call-size').value);
-  const bfOverride = parseFloat(document.getElementById('field-bf-override').value);
+  // Leggi input
+  const heroIn    = parseFloat(document.getElementById('f-hero').value);
+  const villainIn = parseFloat(document.getElementById('f-villain').value);
+  const stage     = document.getElementById('f-stage').value;
 
+  const heroChips    = toChips(heroIn);
+  const villainChips = toChips(villainIn);
+
+  // Ri-leggi stack altri dal DOM
+  document.querySelectorAll('#others-body tr').forEach((tr, i) => {
+    const inp = tr.querySelector('input');
+    if (inp) {
+      const v = parseFloat(inp.value) || 0;
+      others[i] = toChips(v);
+    }
+  });
+
+  // Ri-leggi pagamenti dal DOM
   document.querySelectorAll('#payout-rows input').forEach((inp, i) => {
     payouts[i] = parseFloat(inp.value) || 0;
   });
 
-  const model = TournamentModel.build(players, payouts);
-  const { stacks, pays, heroIdx, villainIdx, coverage } = model;
+  // Costruisci array stack: hero (idx 0), villain (idx 1), altri (idx 2+)
+  const stackArr = [heroChips, villainChips, ...others.filter(s => s > 0)];
+  const n = stackArr.length;
 
-  let chipevEq;
-  let chipevSource;
-  if (!isNaN(chipevIn) && chipevIn > 0) {
-    chipevEq = chipevIn / 100;
-    chipevSource = 'fornita dall\'utente';
-  } else if (!isNaN(potIn) && potIn > 0 && !isNaN(callIn) && callIn > 0) {
-    chipevEq = callIn / (potIn + callIn);
-    chipevSource = 'calcolata da pot/chiamata';
-  } else if (!isNaN(potIn) && potIn > 0) {
-    const heroChips = players[heroIdx].stack;
-    const villChips = players[villainIdx].stack;
-    const eff = Math.min(heroChips, villChips);
-    chipevEq = eff / (potIn + eff * 2);
-    chipevSource = 'stimata da pot + stack';
+  // Normalizza pagamenti
+  const payTotal = payouts.reduce((s,v) => s+v, 0);
+  const paysNorm = payouts.slice(0, Math.min(n, payouts.length)).map(v => v / payTotal);
+
+  // Equity baseline
+  const baseEq = icmEquities(stackArr, paysNorm);
+  const heroBase = baseEq[0];
+
+  // Effective stack (hero è sempre lo stack coperto se più corto)
+  const eff = Math.min(heroChips, villainChips);
+  const coverage = heroChips < villainChips ? 'covered'
+                 : heroChips > villainChips ? 'covering' : 'equal';
+
+  // Scenario WIN: hero vince
+  const winArr = [...stackArr];
+  winArr[0] = heroChips + eff;
+  winArr[1] = villainChips - eff;
+  let heroWin;
+  if (winArr[1] <= 0) {
+    // villain bust: rimuovi
+    const ws = winArr.filter((_,i) => i !== 1);
+    const wp = paysNorm.slice(0, Math.min(ws.length, paysNorm.length));
+    const we = icmEquities(ws, wp);
+    heroWin = we[0]; // hero rimane idx 0
   } else {
-    chipevEq = 1 / 3;
-    chipevSource = 'stima predefinita (33%)';
+    const we = icmEquities(winArr, paysNorm);
+    heroWin = we[0];
   }
 
-  let bfResult;
-  let bfSource;
-  if (!isNaN(bfOverride) && bfOverride > 0) {
-    bfResult = { bf: bfOverride, gain: null, loss: null,
-      heroBase: null, heroWin: null, heroLose: null };
-    bfSource = 'override manuale';
+  // Scenario LOSE: hero perde
+  let heroLose;
+  if (heroChips <= villainChips) {
+    // hero si busta
+    heroLose = 0;
   } else {
-    bfResult = BubbleFactorCalc.compute(model, pays, players);
-    bfSource = players.length <= 6 ? 'ICM Malmuth-Harville (esatto)' : 'approssimazione ICM proporzionale';
+    const loseArr = [...stackArr];
+    loseArr[0] = heroChips - eff;
+    loseArr[1] = villainChips + eff;
+    const le = icmEquities(loseArr, paysNorm);
+    heroLose = le[0];
   }
 
-  const bf = bfResult.bf;
-  const stageMod = RiskPremiumCalc.stageModifier(stage);
-  const rp = RiskPremiumCalc.fromBubbleFactor(bf, chipevEq);
-  const adjustedIcmEq = Math.min(rp.icmEq + stageMod, 0.999);
-  const adjustedRp    = Math.max(adjustedIcmEq - chipevEq, 0);
+  const gain = heroWin - heroBase;
+  const loss = heroBase - heroLose;
+  const bf   = gain > 0 ? Math.max(1.0, loss / gain) : 1.0;
 
-  const pressure = Interpreter.pressureLevel(adjustedRp);
-  const summary  = Interpreter.summary(adjustedRp, bf, coverage, stage);
-  const whyHigh  = Interpreter.whyHigh(adjustedRp, bf, coverage, stage, payouts);
-  const covExpl  = Interpreter.coverageExplanation(coverage,
-    players[heroIdx].stack, players[villainIdx].stack);
+  // Equity richiesta
+  const chipevEq     = 0.5; // push all-in → pot odds ~50% (villain put in chips = pot)
+  const icmEq        = bf / (1 + bf);
+  const stageAdj     = { early: -0.01, middle: 0, 'near-bubble': 0.025, itm: 0.01, 'final-table': 0.015 }[stage] || 0;
+  const icmEqAdj     = Math.min(icmEq + stageAdj, 0.999);
+  const rp           = Math.max(icmEqAdj - chipevEq, 0);
 
-  const totalChips = players.reduce((s, p) => s + p.stack, 0);
-  const stackShares = players.map(p => ({
-    name: p.name, role: p.role,
-    pct: (p.stack / totalChips * 100).toFixed(1),
-    icmEq: bfResult.heroBase != null
-      ? (ICMEngine.computeEquities(stacks, pays)[players.indexOf(p)] * 100).toFixed(1)
-      : '—'
-  }));
+  // Livello pressione
+  const pressure = rp < 0.02 ? { level:'Molto Bassa', color:'var(--teal)',  pct:15 }
+                 : rp < 0.05 ? { level:'Bassa',        color:'var(--teal)',  pct:30 }
+                 : rp < 0.09 ? { level:'Moderata',     color:'var(--amber)', pct:52 }
+                 : rp < 0.14 ? { level:'Alta',          color:'var(--amber)', pct:72 }
+                 : rp < 0.20 ? { level:'Molto Alta',    color:'var(--red)',   pct:88 }
+                 :             { level:'Estrema',        color:'var(--red)',   pct:100 };
 
-  const isApprox = players.length > 6 || bfSource === 'override manuale' ||
-    chipevSource.includes('stimata') || chipevSource === 'stima predefinita (33%)';
+  // Coverage label
+  const covClass = coverage === 'covered' ? 'cov-covered'
+                 : coverage === 'covering' ? 'cov-covering' : 'cov-equal';
+  const covLabel = coverage === 'covered' ? 'Coperto'
+                 : coverage === 'covering' ? 'Coprente' : 'Pari';
+  const covDesc  = coverage === 'covered'
+    ? 'Sei lo stack coperto: bustarti qui significa eliminazione.'
+    : coverage === 'covering'
+    ? 'Sei lo stack coprente: sopravvivi anche perdendo.'
+    : 'Stack pari: rischio simmetrico su entrambi i lati.';
 
-  lastResult = { bf, bfSource, chipevEq, adjustedIcmEq, adjustedRp, pressure,
-    summary, whyHigh, covExpl, coverage, stackShares, isApprox, chipevSource,
-    stageMod, stage, spotType, bfResult };
+  // Summary
+  const heroDisplay    = unit === 'bb' ? heroIn + ' BB' : heroChips.toLocaleString('it-IT') + ' chip';
+  const villainDisplay = unit === 'bb' ? villainIn + ' BB' : villainChips.toLocaleString('it-IT') + ' chip';
 
-  renderResults(lastResult);
-  showTab('results');
-}
-
-/* ============================================================
-   MODULO: Renderer
-   Renderizza i risultati nel DOM. Completamente separato dalla logica.
-   ============================================================ */
-function renderResults(r) {
-  const container = document.getElementById('results-content');
-
-  const fmt  = v => (v * 100).toFixed(1) + '%';
-  const fmt2 = v => (v * 100).toFixed(2) + '%';
-
-  const approxWarning = r.isApprox ? `
-    <div class="warning-box" style="margin-bottom:20px;">
-      <span class="wi">⚠</span>
-      <span><strong>Avviso approssimazione:</strong> Questo risultato è basato su input stimati o ICM semplificato.
-      Fonte chipEV: <em>${r.chipevSource}</em>. Fonte BF: <em>${r.bfSource}</em>.
-      <em>Questa è un'approssimazione pratica per uso didattico, non un motore ICM di livello solver.</em></span>
-    </div>` : '';
-
-  const whyItems = r.whyHigh.map(item => `<li>${item}</li>`).join('');
-
-  const stackRows = r.stackShares.map(s => {
-    const badge = s.role !== 'other'
-      ? `<span class="role-badge ${s.role}">${s.role.toUpperCase()}</span>`
-      : '';
-    return `
-      <tr>
-        <td>${esc(s.name)} ${badge}</td>
-        <td class="text-mono">${s.pct}%</td>
-        <td>
-          <div class="pct-bar-wrap">
-            <div class="pct-bar"><div class="pct-bar-fill" style="width:${s.pct}%"></div></div>
-            <span style="font-family:var(--font-mono);font-size:0.75rem;color:var(--text-muted);min-width:40px">${s.pct}%</span>
-          </div>
-        </td>
-      </tr>`;
-  }).join('');
-
-  const covClass = r.coverage === 'covered' ? 'cov-covered'
-                 : r.coverage === 'covering' ? 'cov-covering' : 'cov-equal';
-  const covLabel = r.coverage === 'covered' ? 'Coperto'
-                 : r.coverage === 'covering' ? 'Coprente' : 'Pari';
-
-  const bfGainLoss = r.bfResult.gain != null
-    ? `<p style="font-size:0.78rem;color:var(--text-dim);margin-top:8px;">
-        Guadagno equity ICM se hero vince: +${fmt2(r.bfResult.gain)} &nbsp;|&nbsp;
-        Perdita equity ICM se hero si busta: −${fmt2(r.bfResult.loss)}
-       </p>` : '';
-
-  container.innerHTML = `
-    ${approxWarning}
-
-    <!-- Card risultato principale -->
-    <div class="result-hero">
-      <div>
-        <div class="result-hero-label">Risk Premium Stimato</div>
-        <div class="result-hero-value">${fmt(r.adjustedRp)}</div>
-        <div class="result-hero-sub">
-          Hai bisogno di <strong style="color:var(--text)">${fmt(r.adjustedRp)}</strong> di equity in più rispetto al chipEV.
-          &nbsp;·&nbsp; Bubble factor: <strong style="color:var(--amber)" class="text-mono">${r.bf.toFixed(2)}×</strong>
-          &nbsp;·&nbsp; Copertura: <span class="cov-badge ${covClass}">${covLabel}</span>
-        </div>
-      </div>
-      <div class="pressure-gauge">
-        <div class="gauge-label">Pressione ICM</div>
-        <div class="gauge-track">
-          <div class="gauge-fill" style="width:${r.pressure.pct}%"></div>
-        </div>
-        <div class="pressure-level" style="color:${r.pressure.color}">${r.pressure.level}</div>
-      </div>
-    </div>
-
-    <!-- Confronto equity -->
-    <div class="equity-grid">
-      <div class="equity-card">
-        <div class="equity-card-label">Equity Richiesta ChipEV</div>
-        <div class="equity-card-value">${fmt(r.chipevEq)}</div>
-        <div class="equity-card-note">Equity minima per essere in pari ignorando l'ICM. Fonte: ${r.chipevSource}.</div>
-      </div>
-      <div class="equity-card highlight">
-        <div class="equity-card-label">Equity Richiesta ICM</div>
-        <div class="equity-card-value">${fmt(r.adjustedIcmEq)}</div>
-        <div class="equity-card-note">Equity minima per essere in pari sotto ICM. Correzione di fase: ${r.stageMod >= 0 ? '+' : ''}${(r.stageMod * 100).toFixed(1)}pp.</div>
-      </div>
-      <div class="equity-card">
-        <div class="equity-card-label">Bubble Factor</div>
-        <div class="equity-card-value">${r.bf.toFixed(2)}×</div>
-        <div class="equity-card-note">Ogni chip perso costa ${r.bf.toFixed(2)}× in più di equity nel montepremi rispetto a ogni chip guadagnato. Fonte: ${r.bfSource}.</div>
-      </div>
-    </div>
-    ${bfGainLoss}
-
-    <!-- Riquadro riepilogo -->
-    <div class="summary-box">
-      ${r.summary}
-    </div>
-
-    <!-- Card di interpretazione -->
-    <div class="interp-grid">
-      <div class="interp-card">
-        <div class="interp-icon">⚖</div>
-        <div>
-          <div class="interp-card-title">Copertura e Rischio</div>
-          <div class="interp-card-body">${r.covExpl}</div>
-        </div>
-      </div>
-      <div class="interp-card">
-        <div class="interp-icon">📊</div>
-        <div>
-          <div class="interp-card-title">Perché Questo Valore</div>
-          <div class="interp-card-body"><ul style="padding-left:16px;line-height:1.8;">${whyItems}</ul></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Tabella distribuzione stack -->
-    <p class="section-head">Distribuzione degli Stack</p>
-    <div class="stack-table-wrap mb24">
-      <table class="coverage-table">
-        <thead>
-          <tr>
-            <th>Giocatore</th>
-            <th>Quota Stack</th>
-            <th>Proporzione</th>
-          </tr>
-        </thead>
-        <tbody>${stackRows}</tbody>
-      </table>
-    </div>
-
-    <!-- Riquadro strategia -->
-    <div class="interp-card" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:20px;">
-      <div class="interp-icon">🎯</div>
-      <div>
-        <div class="interp-card-title">Conclusione Strategica</div>
-        <div class="interp-card-body">
-          ${getStrategicTakeaway(r)}
-        </div>
-      </div>
-    </div>
-
-    <div class="warning-box">
-      <span class="wi">ℹ</span>
-      <span>I risultati sono approssimazioni didattiche. Vedi il tab <a onclick="showTab('model')" href="#">Modello e Ipotesi</a> per i dettagli completi sull'accuratezza del calcolo.</span>
-    </div>
-  `;
-}
-
-function getStrategicTakeaway(r) {
-  const rp = r.adjustedRp;
-  const chipev = r.chipevEq;
-  const icm = r.adjustedIcmEq;
-
+  let summaryText;
   if (rp < 0.02) {
-    return `Con un risk premium minimo, questa situazione è vicina a una decisione chipEV. Concentrati sulla forza della mano e sul range dell'avversario.`;
+    summaryText = `Con <strong>${(rp*100).toFixed(1)}%</strong> di risk premium la pressione ICM è minima. La chiamata è quasi una decisione chipEV pura.`;
+  } else if (rp < 0.07) {
+    summaryText = `Il risk premium di <strong>${(rp*100).toFixed(1)}%</strong> è modesto. Devi avere almeno <strong>${(icmEqAdj*100).toFixed(1)}%</strong> di equity per giustificare la chiamata in termini ICM.`;
+  } else if (rp < 0.14) {
+    summaryText = `Risk premium <strong>significativo</strong>: l'ICM alza la soglia di chiamata dal ${(chipevEq*100).toFixed(0)}% al <strong>${(icmEqAdj*100).toFixed(1)}%</strong>. Molte mani marginali diventano fold.`;
+  } else {
+    summaryText = `Risk premium <strong>estremo</strong> (${(rp*100).toFixed(1)}%). Hai bisogno di <strong>${(icmEqAdj*100).toFixed(1)}%</strong> di equity minima per chiamare — questo è uno dei fold ICM più forti possibili.`;
   }
-  if (rp < 0.06) {
-    return `Pressione ICM moderata. Se la tua mano ha equity intorno o superiore al ${(icm*100).toFixed(0)}%, la chiamata è probabilmente difendibile. Le mani vicine alla soglia chipEV (${(chipev*100).toFixed(0)}%) dovrebbero essere foldate.`;
-  }
-  if (rp < 0.12) {
-    return `Pressione ICM significativa. La tua soglia di chiamata break-even è salita dal ${(chipev*100).toFixed(0)}% (chipEV) ad approssimativamente il ${(icm*100).toFixed(0)}% (ICM). Chiama solo con mani che abbiano un chiaro vantaggio di equity sopra questa soglia.`;
-  }
-  return `Pressione ICM estrema. La tua vera equity break-even è di circa ${(icm*100).toFixed(0)}%. Molte mani profittevoli in chipEV sono giocate perdenti in ICM qui. Sii molto selettivo — questo è un punto privilegiato per un gioco ICM stretto.`;
+
+  const isApprox = n > 6;
+  const approxNote = isApprox
+    ? `Approssimazione ICM proporzionale (${n} giocatori > 6). Per campi piccoli si usa Malmuth-Harville esatto. Questo è un calcolo didattico, non di livello solver.`
+    : `Calcolo ICM Malmuth-Harville esatto su ${n} giocatore${n>1?'i':''}. Correzione di fase applicata: ${stageAdj >= 0 ? '+' : ''}${(stageAdj*100).toFixed(1)}pp.`;
+
+  // RENDER
+  document.getElementById('res-rp').textContent      = '+' + (rp * 100).toFixed(1) + '%';
+  document.getElementById('res-rp-sub').innerHTML    =
+    `Equity extra rispetto al chipEV &nbsp;·&nbsp; <span class="cov-badge ${covClass}">${covLabel}</span>`;
+  document.getElementById('res-chipev').textContent  = (chipevEq * 100).toFixed(0) + '%';
+  document.getElementById('res-icm').textContent     = (icmEqAdj * 100).toFixed(1) + '%';
+  document.getElementById('res-bf').textContent      = bf.toFixed(2) + '×';
+  document.getElementById('gauge-fill').style.width  = pressure.pct + '%';
+  document.getElementById('gauge-level').textContent = pressure.level;
+  document.getElementById('gauge-level').style.color = pressure.color;
+  document.getElementById('res-summary').innerHTML   = summaryText + '<br><span style="font-size:0.8rem;color:var(--text-muted);margin-top:4px;display:block;">' + covDesc + '</span>';
+  document.getElementById('res-approx-note').textContent = approxNote;
+
+  const card = document.getElementById('result-card');
+  card.classList.add('visible');
+  card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 
 /* ============================================================
-   UTILITÀ
+   UTILITIES
    ============================================================ */
-function ordinale(n) {
-  return n + '°';
-}
-
-function esc(str) {
-  return String(str)
-    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
-    .replace(/"/g,'&quot;');
+function ordinale(n) { return n + '°'; }
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 </script>
 </body>
