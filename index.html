@@ -893,7 +893,24 @@ input, select { font-family: var(--font-body); }
 
     <!-- Stack Table -->
     <p class="section-head">Stack dei Giocatori</p>
-    <p class="text-muted mb16" style="font-size:0.83rem;">Inserisci i conteggi chip e assegna i ruoli. Usa qualsiasi unità — il calcolatore usa le proporzioni.</p>
+
+    <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:14px;">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="font-size:0.8rem;color:var(--text-muted);font-weight:500;">Unità stack:</span>
+        <div class="mode-toggle" role="group" aria-label="Unità di misura stack">
+          <button id="btn-unit-chips" class="active" onclick="setStackUnit('chips')">Chips</button>
+          <button id="btn-unit-bb"    class=""       onclick="setStackUnit('bb')">BB</button>
+        </div>
+      </div>
+      <div id="bb-size-wrap" style="display:none;align-items:center;gap:8px;">
+        <label for="field-bb-size" style="font-size:0.78rem;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:0.07em;white-space:nowrap;">Valore BB (chip):</label>
+        <input type="number" id="field-bb-size" min="1" value="1000" placeholder="es. 1000"
+               style="width:110px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);padding:7px 11px;font-size:0.875rem;font-family:var(--font-mono);"
+               oninput="onBBSizeChange()" aria-label="Valore in chip di 1 BB" />
+        <span style="font-size:0.73rem;color:var(--text-dim);">chip per BB</span>
+      </div>
+    </div>
+    <p class="text-muted mb16" id="stack-unit-hint" style="font-size:0.83rem;">Inserisci i conteggi chip e assegna i ruoli. Usa qualsiasi unità — il calcolatore usa le proporzioni.</p>
 
     <div class="stack-table-wrap mb24">
       <table class="stack-table" id="stack-table">
@@ -901,7 +918,7 @@ input, select { font-family: var(--font-body); }
           <tr>
             <th>#</th>
             <th>Giocatore</th>
-            <th>Stack</th>
+            <th id="stack-col-header">Stack</th>
             <th>Ruolo</th>
             <th></th>
           </tr>
@@ -1122,9 +1139,11 @@ Renderer          — output DOM (completamente separato dalla logica)
 /* ============================================================
    STATO
    ============================================================ */
-let appMode = 'basic'; // 'basic' | 'advanced'
-let players = [];      // { name, stack, role: 'hero'|'villain'|'other' }
-let payouts = [];      // valori numerici (percentuali o importi)
+let appMode = 'basic';   // 'basic' | 'advanced'
+let stackUnit = 'chips'; // 'chips' | 'bb'
+let bbSize = 1000;       // valore in chip di 1 BB
+let players = [];        // { name, stack, role: 'hero'|'villain'|'other' }
+let payouts = [];        // valori numerici (percentuali o importi)
 let lastResult = null;
 
 /* ============================================================
@@ -1166,11 +1185,27 @@ function renderStackTable() {
   const tbody = document.getElementById('stack-body');
   tbody.innerHTML = '';
   players.forEach((p, i) => {
+    // Display value: always stored in chips internally; show BB if unit=bb
+    const displayVal = stackUnit === 'bb' && bbSize > 0
+      ? (p.stack / bbSize).toFixed(1)
+      : (p.stack || '');
     const tr = document.createElement('tr');
     tr.innerHTML = `
       <td style="font-family:var(--font-mono);color:var(--text-muted);font-size:0.78rem;">${i + 1}</td>
       <td><input type="text" value="${esc(p.name)}" oninput="players[${i}].name=this.value" style="max-width:130px;" aria-label="Nome giocatore ${i+1}" /></td>
-      <td><input type="number" value="${p.stack||''}" min="0" oninput="players[${i}].stack=parseFloat(this.value)||0" aria-label="Stack giocatore ${i+1}" /></td>
+      <td>
+        <div style="display:flex;align-items:center;gap:6px;">
+          <input type="number" value="${displayVal}" min="0" step="${stackUnit==='bb'?'0.5':'100'}"
+                 oninput="setPlayerStack(${i}, this.value)"
+                 aria-label="Stack giocatore ${i+1}" style="max-width:100px;" />
+          <span style="font-family:var(--font-mono);font-size:0.7rem;color:var(--text-dim);flex-shrink:0;">
+            ${stackUnit === 'bb' ? 'BB' : 'chip'}
+          </span>
+          ${stackUnit === 'bb' && p.stack > 0
+            ? `<span style="font-family:var(--font-mono);font-size:0.68rem;color:var(--text-dim);flex-shrink:0;">(${p.stack.toLocaleString('it-IT')} chip)</span>`
+            : ''}
+        </div>
+      </td>
       <td>
         <select onchange="setRole(${i}, this.value)" aria-label="Ruolo giocatore ${i+1}">
           <option value="other"  ${p.role==='other'  ?'selected':''}>Altro</option>
@@ -1202,6 +1237,46 @@ function setRole(i, role) {
   updateRoleBadges();
 }
 
+/* Imposta lo stack di un giocatore convertendo da BB a chip se necessario */
+function setPlayerStack(i, val) {
+  const v = parseFloat(val) || 0;
+  players[i].stack = stackUnit === 'bb' ? Math.round(v * bbSize) : v;
+  // Aggiorna il tooltip chip se in modalità BB (senza re-render completo)
+  const rows = document.querySelectorAll('#stack-body tr');
+  if (rows[i]) {
+    const span = rows[i].querySelector('td:nth-child(3) span:last-child');
+    if (span && stackUnit === 'bb' && players[i].stack > 0) {
+      span.textContent = '(' + players[i].stack.toLocaleString('it-IT') + ' chip)';
+    }
+  }
+}
+
+/* Cambia unità stack tra chip e BB */
+function setStackUnit(unit) {
+  stackUnit = unit;
+  bbSize = parseInt(document.getElementById('field-bb-size').value) || 1000;
+  document.getElementById('btn-unit-chips').classList.toggle('active', unit === 'chips');
+  document.getElementById('btn-unit-bb').classList.toggle('active', unit === 'bb');
+  const bbWrap = document.getElementById('bb-size-wrap');
+  bbWrap.style.display = unit === 'bb' ? 'flex' : 'none';
+  const hint = document.getElementById('stack-unit-hint');
+  const col  = document.getElementById('stack-col-header');
+  if (unit === 'bb') {
+    hint.textContent = 'Inserisci gli stack in Big Blind (BB). Il calcolatore converte automaticamente in chip usando il valore BB impostato.';
+    col.textContent = 'Stack (BB)';
+  } else {
+    hint.textContent = 'Inserisci i conteggi chip e assegna i ruoli. Usa qualsiasi unità — il calcolatore usa le proporzioni.';
+    col.textContent = 'Stack';
+  }
+  renderStackTable();
+}
+
+/* Aggiorna bbSize quando l'utente cambia il campo e ri-renderizza */
+function onBBSizeChange() {
+  bbSize = parseInt(document.getElementById('field-bb-size').value) || 1000;
+  renderStackTable();
+}
+
 function addPlayer() {
   players.push({ name: `Giocatore ${players.length + 1}`, stack: 0, role: 'other' });
   renderStackTable();
@@ -1219,11 +1294,15 @@ function clearStacks() {
 }
 
 function loadExample() {
+  // Esempio: final table 4 giocatori, BB = 10.000 chip
+  // Stack memorizzati sempre in chip
+  document.getElementById('field-bb-size').value = 10000;
+  bbSize = 10000;
   players = [
-    { name: 'Hero',       stack: 280000, role: 'hero' },
-    { name: 'Villain',    stack: 420000, role: 'villain' },
-    { name: 'Giocatore 3',stack: 190000, role: 'other' },
-    { name: 'Giocatore 4',stack: 110000, role: 'other' },
+    { name: 'Hero',        stack: 280000, role: 'hero' },
+    { name: 'Villain',     stack: 420000, role: 'villain' },
+    { name: 'Giocatore 3', stack: 190000, role: 'other' },
+    { name: 'Giocatore 4', stack: 110000, role: 'other' },
   ];
   renderStackTable();
   document.getElementById('field-stage').value = 'final-table';
@@ -1276,8 +1355,11 @@ function validate() {
 
   document.querySelectorAll('#stack-body tr').forEach((tr, i) => {
     const inputs = tr.querySelectorAll('input');
-    if (inputs[0]) players[i].name  = inputs[0].value;
-    if (inputs[1]) players[i].stack = parseFloat(inputs[1].value) || 0;
+    if (inputs[0]) players[i].name = inputs[0].value;
+    if (inputs[1]) {
+      const v = parseFloat(inputs[1].value) || 0;
+      players[i].stack = stackUnit === 'bb' ? Math.round(v * bbSize) : v;
+    }
   });
 
   if (players.length < 2) errors.push('Servono almeno 2 giocatori.');
